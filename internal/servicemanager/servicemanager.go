@@ -6,12 +6,13 @@ import (
 	"sync"
 
 	"github.com/ftCommunity/roboheart/internal/service"
+	"github.com/ftCommunity/roboheart/internal/services/core/config"
 	"github.com/thoas/go-funk"
 )
 
 var (
 	services     = []service.Service{}
-	coreservices = []service.Service{}
+	coreservices = []service.Service{config.Service}
 )
 
 type ServiceState struct {
