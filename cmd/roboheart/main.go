@@ -18,4 +18,9 @@ func main() {
 		log.Fatal(err)
 	}
 	log.Println("Start-up completed")
+	log.Println("Waiting 5s until shutdown")
+	time.Sleep(5 * time.Second)
+	log.Println("Stopping roboheart")
+	sm.Stop()
+	log.Println("End")
 }
