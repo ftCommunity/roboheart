@@ -15,6 +15,11 @@ import (
 	"github.com/google/go-github/v31/github"
 )
 
+const (
+	PERMISSION_BASE   = "releasever"
+	PERMISSION_UPDATE = PERMISSION_BASE + "." + "update"
+)
+
 type relver struct {
 	release, prerelease *release
 	releases            []release
@@ -28,6 +33,11 @@ type relver struct {
 }
 
 type ReleaseVersion interface {
+	Update(token string) error
+	GetRelease() (release, error)
+	GetPreRelease() (release, error)
+	GetReleases() []release
+}
 
 type release struct {
 	Version  semver.Version
@@ -45,6 +55,7 @@ func (r *relver) Init(services map[string]service.Service, logger service.Logger
 	if !ok {
 		return errors.New("Type assertion error")
 	}
+	r.acm.RegisterPermission(PERMISSION_UPDATE, map[string]bool{"root": true, "user": true, "app": false})
 	r.gh = github.NewClient(nil)
 	r.tm = threadmanager.NewThreadManager(r.logger, r.error)
 	r.tm.Load("update", r.updateThread)
@@ -108,6 +119,37 @@ func (r *relver) getReleaseData() error {
 		}
 	}
 	return nil
+}
+
+func (r *relver) Update(token string) error {
+	if err := acm.CheckTokenPermission(r.acm, token, PERMISSION_UPDATE); err != nil {
+		return err
+	}
+	return r.getReleaseData()
+}
+
+func (r *relver) GetRelease() (release, error) {
+	r.lock.Lock()
+	defer r.lock.Unlock()
+	if r.release == nil {
+		return release{}, errors.New("Prerelease not set")
+	}
+	return *r.release, nil
+}
+
+func (r *relver) GetPreRelease() (release, error) {
+	r.lock.Lock()
+	defer r.lock.Unlock()
+	if r.prerelease == nil {
+		return release{}, errors.New("Prerelease not set")
+	}
+	return *r.prerelease, nil
+}
+
+func (r *relver) GetReleases() []release {
+	r.lock.Lock()
+	defer r.lock.Unlock()
+	return r.releases
 }
 
 func newRelease(rel *github.RepositoryRelease) (*release, error) {
