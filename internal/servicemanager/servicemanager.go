@@ -202,6 +202,18 @@ func (sm *ServiceManager) serviceCheckCircularDependencies(start string, check s
 	return nil
 }
 
+func (sm *ServiceManager) checkDependencyNames() error {
+	for sn, ss := range sm.services {
+		dl, adl := ss.service.Dependencies()
+		for _, dn := range append(dl, adl...) {
+			if _, ok := sm.services[dn]; !ok {
+				return errors.New("Service " + sn + " requests dependency " + dn + " which is not definded")
+			}
+		}
+	}
+	return nil
+}
+
 func NewServiceManager() (*ServiceManager, error) {
 	sm := new(ServiceManager)
 	sm.services = make(map[string]*ServiceState)
@@ -210,6 +222,9 @@ func NewServiceManager() (*ServiceManager, error) {
 	}
 	for _, s := range coreservices {
 		sm.addCoreService(s)
+	}
+	if err := sm.checkDependencyNames(); err != nil {
+		return nil, err
 	}
 	if err := sm.checkCircularDependencies(); err != nil {
 		return nil, err
