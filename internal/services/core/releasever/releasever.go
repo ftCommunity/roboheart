@@ -9,6 +9,8 @@ import (
 
 	"github.com/blang/semver"
 	"github.com/ftCommunity/roboheart/internal/service"
+	"github.com/ftCommunity/roboheart/internal/services/core/acm"
+	"github.com/ftCommunity/roboheart/package/servicehelpers"
 	"github.com/ftCommunity/roboheart/package/threadmanager"
 	"github.com/google/go-github/v31/github"
 )
@@ -22,6 +24,7 @@ type relver struct {
 	logger              service.LoggerFunc
 	error               service.ErrorFunc
 	tm                  *threadmanager.ThreadManager
+	acm                 acm.ACM
 }
 
 type ReleaseVersion interface {
@@ -34,6 +37,14 @@ type release struct {
 func (r *relver) Init(services map[string]service.Service, logger service.LoggerFunc, e service.ErrorFunc) error {
 	r.logger = logger
 	r.error = e
+	if err := servicehelpers.CheckMainDependencies(r, services); err != nil {
+		return err
+	}
+	var ok bool
+	r.acm, ok = services["acm"].(acm.ACM)
+	if !ok {
+		return errors.New("Type assertion error")
+	}
 	r.gh = github.NewClient(nil)
 	r.tm = threadmanager.NewThreadManager(r.logger, r.error)
 	r.tm.Load("update", r.updateThread)
@@ -43,7 +54,7 @@ func (r *relver) Init(services map[string]service.Service, logger service.Logger
 
 func (r *relver) Stop() error                                                { return nil }
 func (r *relver) Name() string                                               { return "relver" }
-func (r *relver) Dependencies() ([]string, []string)                         { return []string{}, []string{} }
+func (r *relver) Dependencies() ([]string, []string)                         { return []string{"acm"}, []string{} }
 func (r *relver) SetAdditionalDependencies(map[string]service.Service) error { return nil }
 func (r *relver) UnsetAdditionalDependencies(s chan interface{})             { s <- struct{}{} }
 
