@@ -11,6 +11,10 @@ import (
 	"github.com/thoas/go-funk"
 )
 
+var (
+	DEFAULTS []string = []string{"root", "user", "app"}
+)
+
 type acm struct {
 	logger      service.LoggerFunc
 	error       service.ErrorFunc
@@ -33,6 +37,9 @@ func (a *acm) Init(services map[string]service.Service, logger service.LoggerFun
 	a.error = e
 	a.permissions = make([]string, 0)
 	a.defaults = make(map[string]*map[string]bool)
+	for _, d := range DEFAULTS {
+		a.addDefault(d)
+	}
 	a.tm = threadmanager.NewThreadManager(a.logger, a.error)
 	a.tm.Load("cleanup", a.cleanupThread)
 	a.tm.Start("cleanup")
@@ -74,7 +81,7 @@ func (a *acm) RegisterPermission(name string, defaults map[string]bool) error {
 	}
 	for dn, ds := range defaults {
 		if _, ok := a.defaults[dn]; !ok {
-			*(a.defaults[dn]) = make(map[string]bool)
+			return errors.New("Unknown default " + dn)
 		}
 		(*a.defaults[dn])[name] = ds
 	}
@@ -131,6 +138,11 @@ func (a *acm) createToken() string {
 	*t.permissions = make(map[string]bool)
 	a.tokens[id.String()] = t
 	return id.String()
+}
+
+func (a *acm) addDefault(d string) {
+	a.defaults[d] = &map[string]bool{}
+
 }
 
 var Service = new(acm)
