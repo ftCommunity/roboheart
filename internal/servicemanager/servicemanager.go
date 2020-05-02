@@ -8,6 +8,7 @@ import (
 	"github.com/ftCommunity/roboheart/internal/service"
 	"github.com/ftCommunity/roboheart/internal/services/core/acm"
 	"github.com/ftCommunity/roboheart/internal/services/core/config"
+	"github.com/ftCommunity/roboheart/internal/services/core/fwver"
 	"github.com/thoas/go-funk"
 )
 
@@ -17,6 +18,7 @@ var (
 	coreservices = []service.Service{
 		config.Service,
 		acm.Service,
+		fwver.Service,
 	}
 )
 
