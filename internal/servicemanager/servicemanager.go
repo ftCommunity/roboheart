@@ -118,6 +118,9 @@ func (sm *ServiceManager) initServices(sl []string) error {
 	for len(sl) > init {
 		for _, sn := range sl {
 			ss := sm.services[sn]
+			if ss.running {
+				continue
+			}
 			s := ss.service
 			dl, _ := ss.service.Dependencies()
 			dln := make([]string, 0)
