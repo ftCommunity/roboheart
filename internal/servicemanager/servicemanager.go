@@ -9,6 +9,7 @@ import (
 	"github.com/ftCommunity/roboheart/internal/services/core/acm"
 	"github.com/ftCommunity/roboheart/internal/services/core/config"
 	"github.com/ftCommunity/roboheart/internal/services/core/fwver"
+	"github.com/ftCommunity/roboheart/internal/services/core/releasever"
 	"github.com/thoas/go-funk"
 )
 
@@ -19,6 +20,7 @@ var (
 		config.Service,
 		acm.Service,
 		fwver.Service,
+		relver.Service,
 	}
 )
 
