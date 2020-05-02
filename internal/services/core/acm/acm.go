@@ -93,9 +93,8 @@ func (a *acm) RegisterPermission(name string, defaults map[string]bool) error {
 func (a *acm) GetDafault(name string) (map[string]bool, error) {
 	if d, ok := a.defaults[name]; ok {
 		return *d, nil
-	} else {
-		return nil, errors.New("Default not found")
 	}
+	return nil, errors.New("Default not found")
 }
 
 func (a *acm) CreateToken(layers ...map[string]bool) (string, error) {
