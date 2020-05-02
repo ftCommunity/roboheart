@@ -40,6 +40,7 @@ func (a *acm) Init(services map[string]service.Service, logger service.LoggerFun
 	for _, d := range DEFAULTS {
 		a.addDefault(d)
 	}
+	a.tokens = make(map[string]*token)
 	a.tm = threadmanager.NewThreadManager(a.logger, a.error)
 	a.tm.Load("cleanup", a.cleanupThread)
 	a.tm.Start("cleanup")
@@ -76,6 +77,7 @@ func (a *acm) RegisterPermission(name string, defaults map[string]bool) error {
 	if funk.ContainsString(a.permissions, name) {
 		return errors.New("Permission already registered")
 	}
+	a.permissions = append(a.permissions, name)
 	if defaults == nil {
 		return nil
 	}
@@ -101,7 +103,7 @@ func (a *acm) CreateToken(layers ...map[string]bool) (string, error) {
 	if err := a.UpdateToken(id, layers...); err != nil {
 		return "", err
 	}
-	return "", nil
+	return id, nil
 }
 
 func (a *acm) UpdateToken(id string, layers ...map[string]bool) error {
@@ -135,7 +137,7 @@ func (a *acm) createToken() string {
 		return ""
 	}
 	t := new(token)
-	*t.permissions = make(map[string]bool)
+	t.permissions = &map[string]bool{}
 	a.tokens[id.String()] = t
 	return id.String()
 }
