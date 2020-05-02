@@ -26,8 +26,7 @@ type acm struct {
 
 type ACM interface {
 	RegisterPermission(name string, defaults map[string]bool) error
-	GetDafault(name string) (map[string]bool, error)
-	CreateToken(layers ...map[string]bool) (string, error)
+	CreateToken(defaults []string, layers ...map[string]bool) (string, error)
 	UpdateToken(id string, layers ...map[string]bool) error
 	GetToken(id string) (*token, error)
 }
@@ -90,16 +89,24 @@ func (a *acm) RegisterPermission(name string, defaults map[string]bool) error {
 	return nil
 }
 
-func (a *acm) GetDafault(name string) (map[string]bool, error) {
+func (a *acm) getDafault(name string) (map[string]bool, error) {
 	if d, ok := a.defaults[name]; ok {
 		return *d, nil
 	}
 	return nil, errors.New("Default not found")
 }
 
-func (a *acm) CreateToken(layers ...map[string]bool) (string, error) {
+func (a *acm) CreateToken(defaults []string, layers ...map[string]bool) (string, error) {
 	id := a.createToken()
-	if err := a.UpdateToken(id, layers...); err != nil {
+	defaultlayers := []map[string]bool{}
+	for _, dn := range defaults {
+		d, err := a.getDafault(dn)
+		if err != nil {
+			return "", err
+		}
+		defaultlayers = append(defaultlayers, d)
+	}
+	if err := a.UpdateToken(id, append(defaultlayers, layers...)...); err != nil {
 		return "", err
 	}
 	return id, nil
