@@ -12,8 +12,12 @@ import (
 )
 
 var (
-	services     = []service.Service{}
-	coreservices = []service.Service{config.Service, acm.Service}
+	services = []service.Service{
+	}
+	coreservices = []service.Service{
+		config.Service,
+		acm.Service,
+	}
 )
 
 type ServiceState struct {
