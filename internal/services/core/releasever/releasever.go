@@ -2,6 +2,7 @@ package relver
 
 import (
 	"context"
+	"errors"
 	"strings"
 	"sync"
 	"time"
@@ -13,7 +14,8 @@ import (
 )
 
 type relver struct {
-	release, prerelease *semver.Version
+	release, prerelease *release
+	releases            []release
 	lock                sync.Mutex
 	last                time.Time
 	gh                  *github.Client
@@ -23,6 +25,10 @@ type relver struct {
 }
 
 type ReleaseVersion interface {
+
+type release struct {
+	Version  semver.Version
+	Download string
 }
 
 func (r *relver) Init(services map[string]service.Service, logger service.LoggerFunc, e service.ErrorFunc) error {
@@ -70,25 +76,51 @@ func (r *relver) getReleaseData() error {
 	r.lock.Lock()
 	defer r.lock.Unlock()
 	r.release, r.prerelease = nil, nil
-	for _, rel := range releases {
-		if rel.TagName != nil {
-			ver, err := semver.Make(strings.Replace(*rel.TagName, "v", "", -1))
+	r.releases = make([]release, 0)
+	for _, rrel := range releases {
+		if rrel.TagName != nil {
+			rel, err := newRelease(rrel)
 			if err != nil {
 				return err
 			}
+			r.releases = append(r.releases, *rel)
 			pr := false
-			if rel.Prerelease != nil {
-				pr = *rel.Prerelease
+			if rrel.Prerelease != nil {
+				pr = *rrel.Prerelease
 			}
 			if r.release == nil && !pr {
-				r.release = &ver
+				r.release = rel
 			}
 			if r.prerelease == nil && pr {
-				r.prerelease = &ver
+				r.prerelease = rel
 			}
 		}
 	}
 	return nil
+}
+
+func newRelease(rel *github.RepositoryRelease) (*release, error) {
+	r := new(release)
+	ver, err := semver.Make(strings.Replace(*rel.TagName, "v", "", -1))
+	if err != nil {
+		return nil, err
+	}
+	r.Version = ver
+	if r.Download, err = getAssetURL(rel); err != nil {
+		return nil, err
+	}
+	return r, nil
+}
+
+func getAssetURL(rel *github.RepositoryRelease) (string, error) {
+	for _, a := range rel.Assets {
+		if a.Name != nil && a.ContentType != nil {
+			if *a.ContentType == "application/zip" {
+				return *a.Name, nil
+			}
+		}
+	}
+	return "", errors.New("Asset not found")
 }
 
 var Service = new(relver)
