@@ -42,6 +42,7 @@ type ReleaseVersion interface {
 type Release struct {
 	Version  semver.Version
 	Download string
+	Size     int
 }
 
 func (r *relver) Init(services map[string]service.Service, logger service.LoggerFunc, e service.ErrorFunc) error {
@@ -159,21 +160,21 @@ func newRelease(rel *github.RepositoryRelease) (*Release, error) {
 		return nil, err
 	}
 	r.Version = ver
-	if r.Download, err = getAssetURL(rel); err != nil {
+	if r.Download, r.Size, err = getAssetURL(rel); err != nil {
 		return nil, err
 	}
 	return r, nil
 }
 
-func getAssetURL(rel *github.RepositoryRelease) (string, error) {
+func getAssetURL(rel *github.RepositoryRelease) (string, int, error) {
 	for _, a := range rel.Assets {
-		if a.Name != nil && a.ContentType != nil {
+		if a.Name != nil && a.ContentType != nil && a.Size != nil {
 			if *a.ContentType == "application/zip" {
-				return *a.Name, nil
+				return *a.Name, *a.Size, nil
 			}
 		}
 	}
-	return "", errors.New("Asset not found")
+	return "", 0, errors.New("Asset not found")
 }
 
 var Service = new(relver)
