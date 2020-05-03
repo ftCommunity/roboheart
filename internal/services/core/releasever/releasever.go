@@ -21,8 +21,8 @@ const (
 )
 
 type relver struct {
-	release, prerelease *release
-	releases            []release
+	release, prerelease *Release
+	releases            []Release
 	lock                sync.Mutex
 	last                time.Time
 	gh                  *github.Client
@@ -34,12 +34,12 @@ type relver struct {
 
 type ReleaseVersion interface {
 	Update(token string) error
-	GetRelease() (release, error)
-	GetPreRelease() (release, error)
-	GetReleases() []release
+	GetRelease() (Release, error)
+	GetPreRelease() (Release, error)
+	GetReleases() []Release
 }
 
-type release struct {
+type Release struct {
 	Version  semver.Version
 	Download string
 }
@@ -98,7 +98,7 @@ func (r *relver) getReleaseData() error {
 	r.lock.Lock()
 	defer r.lock.Unlock()
 	r.release, r.prerelease = nil, nil
-	r.releases = make([]release, 0)
+	r.releases = make([]Release, 0)
 	for _, rrel := range releases {
 		if rrel.TagName != nil {
 			rel, err := newRelease(rrel)
@@ -128,32 +128,32 @@ func (r *relver) Update(token string) error {
 	return r.getReleaseData()
 }
 
-func (r *relver) GetRelease() (release, error) {
+func (r *relver) GetRelease() (Release, error) {
 	r.lock.Lock()
 	defer r.lock.Unlock()
 	if r.release == nil {
-		return release{}, errors.New("Prerelease not set")
+		return Release{}, errors.New("Prerelease not set")
 	}
 	return *r.release, nil
 }
 
-func (r *relver) GetPreRelease() (release, error) {
+func (r *relver) GetPreRelease() (Release, error) {
 	r.lock.Lock()
 	defer r.lock.Unlock()
 	if r.prerelease == nil {
-		return release{}, errors.New("Prerelease not set")
+		return Release{}, errors.New("Prerelease not set")
 	}
 	return *r.prerelease, nil
 }
 
-func (r *relver) GetReleases() []release {
+func (r *relver) GetReleases() []Release {
 	r.lock.Lock()
 	defer r.lock.Unlock()
 	return r.releases
 }
 
-func newRelease(rel *github.RepositoryRelease) (*release, error) {
-	r := new(release)
+func newRelease(rel *github.RepositoryRelease) (*Release, error) {
+	r := new(Release)
 	ver, err := semver.Make(strings.Replace(*rel.TagName, "v", "", -1))
 	if err != nil {
 		return nil, err
