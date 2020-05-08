@@ -127,13 +127,13 @@ func (sm *ServiceManager) initServices(sl []string) error {
 			}
 			s := ss.service
 			dl, _ := ss.service.Dependencies()
-			dln := make([]string, 0)
+			dm := false
 			for _, d := range dl {
 				if !sm.services[d].running {
-					dln = append(dln, d)
+					dm = true
 				}
 			}
-			if len(dln) == 0 {
+			if !dm {
 				err := s.Init(
 					sm.getServiceDependencies(sn),
 					sm.genServiceLogger(sn),
