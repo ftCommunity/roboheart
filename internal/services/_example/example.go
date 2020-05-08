@@ -34,7 +34,7 @@ func (ex *example) SetAdditionalDependencies(map[string]service.Service) error {
 func (ex *example) UnsetAdditionalDependencies()                               {}
 
 func (ex *example) exampleThread(logger service.LoggerFunc, e service.ErrorFunc, stop, stopped chan interface{}) {
-	// for a normal "do every x seconds"-thread you should not need to change too much
+	//for a normal "do every x seconds"-thread you should not need to change too much
 	//if your task should run once beforehand you might just put it right before the for loop
 	for {
 		select {
