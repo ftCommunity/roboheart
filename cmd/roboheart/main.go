@@ -2,7 +2,9 @@ package main
 
 import (
 	"log"
-	"time"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/ftCommunity/roboheart/internal/servicemanager"
 )
@@ -18,8 +20,9 @@ func main() {
 		log.Fatal(err)
 	}
 	log.Println("Start-up completed")
-	log.Println("Waiting 5s until shutdown")
-	time.Sleep(5 * time.Second)
+	c := make(chan os.Signal)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+	<-c
 	log.Println("Stopping roboheart")
 	sm.Stop()
 	log.Println("End")
