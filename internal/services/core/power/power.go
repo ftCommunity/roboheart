@@ -3,6 +3,8 @@ package power
 import (
 	"errors"
 	"os/exec"
+	"strconv"
+	"time"
 
 	"github.com/ftCommunity/roboheart/internal/service"
 	"github.com/ftCommunity/roboheart/internal/services/core/acm"
@@ -20,6 +22,7 @@ type power struct {
 type Power interface {
 	Poweroff(token string) error
 	Reboot(token string) error
+	SetWakeAlarm(t time.Time) error
 }
 
 func (p *power) Init(services map[string]service.Service, _ service.LoggerFunc, _ service.ErrorFunc) error {
@@ -54,6 +57,11 @@ func (p *power) Reboot(token string) error {
 		return err
 	}
 	cmd := exec.Command("sudo", "reboot")
+	return cmd.Run()
+}
+
+func (p *power) SetWakeAlarm(t time.Time) error {
+	cmd := exec.Command("echo", ">", strconv.Itoa(int(t.Unix())))
 	return cmd.Run()
 }
 
