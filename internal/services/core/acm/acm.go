@@ -50,7 +50,7 @@ func (a *acm) Stop() error                                                { a.tm
 func (a *acm) Name() string                                               { return "acm" }
 func (a *acm) Dependencies() ([]string, []string)                         { return []string{}, []string{} }
 func (a *acm) SetAdditionalDependencies(map[string]service.Service) error { return nil }
-func (a *acm) UnsetAdditionalDependencies(s chan interface{})             { s <- struct{}{} }
+func (a *acm) UnsetAdditionalDependencies()                               {}
 
 func (a *acm) cleanupThread(logger service.LoggerFunc, e service.ErrorFunc, stop, stopped chan interface{}) {
 	for {

@@ -71,9 +71,7 @@ func (sm *ServiceManager) Stop() error {
 	for sn, ss := range sm.services {
 		wg.Add(1)
 		go func(sn string, ss *ServiceState) {
-			c := make(chan interface{})
-			go ss.service.UnsetAdditionalDependencies(c)
-			<-c
+			ss.service.UnsetAdditionalDependencies()
 			wg.Done()
 		}(sn, ss)
 	}

@@ -42,7 +42,7 @@ func (p *power) Stop() error                                                { re
 func (p *power) Name() string                                               { return "power" }
 func (p *power) Dependencies() ([]string, []string)                         { return []string{"acm"}, []string{} }
 func (p *power) SetAdditionalDependencies(map[string]service.Service) error { return nil }
-func (p *power) UnsetAdditionalDependencies(s chan interface{})             { s <- struct{}{} }
+func (p *power) UnsetAdditionalDependencies()                               {}
 
 func (p *power) Poweroff(token string) error {
 	if err := acm.CheckTokenPermission(p.acm, token, PERMISSION); err != nil {

@@ -69,7 +69,7 @@ func (c *config) configCommitThread(logger service.LoggerFunc, e service.ErrorFu
 	}
 }
 
-func (c *config) UnsetAdditionalDependencies(s chan interface{}) { s <- struct{}{} }
+func (c *config) UnsetAdditionalDependencies() {}
 
 func (c *config) GetTree() uci.Tree { return c.tree }
 

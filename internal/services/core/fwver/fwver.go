@@ -35,7 +35,7 @@ func (f *fwver) Stop() error                                                { re
 func (f *fwver) Name() string                                               { return "fwver" }
 func (f *fwver) Dependencies() ([]string, []string)                         { return []string{}, []string{} }
 func (f *fwver) SetAdditionalDependencies(map[string]service.Service) error { return nil }
-func (f *fwver) UnsetAdditionalDependencies(s chan interface{})             { s <- struct{}{} }
+func (f *fwver) UnsetAdditionalDependencies()                               {}
 
 func (f *fwver) Get() semver.Version {
 	return f.semver

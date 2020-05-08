@@ -68,7 +68,7 @@ func (r *relver) Stop() error                                                { r
 func (r *relver) Name() string                                               { return "relver" }
 func (r *relver) Dependencies() ([]string, []string)                         { return []string{"acm"}, []string{} }
 func (r *relver) SetAdditionalDependencies(map[string]service.Service) error { return nil }
-func (r *relver) UnsetAdditionalDependencies(s chan interface{})             { s <- struct{}{} }
+func (r *relver) UnsetAdditionalDependencies()                               {}
 
 func (r *relver) updateThread(logger service.LoggerFunc, e service.ErrorFunc, stop, stopped chan interface{}) {
 	if err := r.getReleaseData(); err != nil {

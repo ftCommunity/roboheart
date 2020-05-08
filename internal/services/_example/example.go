@@ -31,7 +31,7 @@ func (ex *example) Stop() error                                                {
 func (ex *example) Name() string                                               { return "example" }
 func (ex *example) Dependencies() ([]string, []string)                         { return []string{}, []string{} }
 func (ex *example) SetAdditionalDependencies(map[string]service.Service) error { return nil }
-func (ex *example) UnsetAdditionalDependencies(s chan interface{})             { s <- struct{}{} }
+func (ex *example) UnsetAdditionalDependencies()                               {}
 
 func (ex *example) exampleThread(logger service.LoggerFunc, e service.ErrorFunc, stop, stopped chan interface{}) {
 	// for a normal "do every x seconds"-thread you should not need to change too much

@@ -6,7 +6,7 @@ type Service interface {
 	Name() string
 	Dependencies() ([]string, []string)
 	SetAdditionalDependencies(map[string]Service) error
-	UnsetAdditionalDependencies(chan interface{})
+	UnsetAdditionalDependencies()
 }
 
 type LoggerFunc func(...interface{})
