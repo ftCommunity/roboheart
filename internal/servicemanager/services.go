@@ -7,6 +7,7 @@ import (
 	"github.com/ftCommunity/roboheart/internal/services/core/fwver"
 	"github.com/ftCommunity/roboheart/internal/services/core/power"
 	"github.com/ftCommunity/roboheart/internal/services/core/releasever"
+	"github.com/ftCommunity/roboheart/internal/services/core/web"
 )
 
 var (
@@ -18,5 +19,6 @@ var (
 		fwver.Service,
 		relver.Service,
 		power.Service,
+		web.Service,
 	}
 )
