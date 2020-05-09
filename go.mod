@@ -3,7 +3,6 @@ module github.com/ftCommunity/roboheart
 go 1.14
 
 require (
-	github.com/ProtonMail/gopenpgp/v2 v2.0.1 // indirect
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/digineo/go-uci v0.0.0-20190912114941-85b723d68838
 	github.com/google/go-github/v31 v31.0.0
