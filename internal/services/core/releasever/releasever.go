@@ -46,9 +46,9 @@ type ReleaseVersion interface {
 }
 
 type Release struct {
-	Version  semver.Version
-	Download string
-	Size     int
+	Version  semver.Version `json:"version"`
+	Download string         `json:"filename"`
+	Size     int            `json:"size"`
 }
 
 func (r *relver) Init(services map[string]service.Service, logger service.LoggerFunc, e service.ErrorFunc) error {
