@@ -12,6 +12,7 @@ type token struct {
 	created, lastrefresh          time.Time
 	totallifetime, refeshlifetime time.Duration
 	permissions                   *map[string]bool
+	parent                        *token
 }
 
 func (t *token) GetPermission(name string) (bool, error) {
@@ -32,6 +33,32 @@ func (t *token) CheckValid() bool {
 		return false
 	}
 	return true
+}
+
+func (t *token) MakeSubToken(defaults []string, layers ...map[string]bool) (string, error) {
+	id := t.makeSub()
+	defaultlayers := []map[string]bool{}
+	for _, dn := range defaults {
+		d, err := t.acm.getDafault(dn)
+		if err != nil {
+			return "", err
+		}
+		defaultlayers = append(defaultlayers, d)
+	}
+	if err := t.acm.UpdateToken(id, append(defaultlayers, layers...)...); err != nil {
+		return "", err
+	}
+	return id, nil
+}
+
+func (t *token) makeSub() string {
+	s := t.acm.createToken()
+	st, err := t.acm.GetToken(s)
+	if err != nil {
+		t.acm.error(err)
+	}
+	st.parent = t
+	return s
 }
 
 func (t *token) Refresh() { t.lastrefresh = time.Now() }

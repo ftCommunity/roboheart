@@ -64,7 +64,15 @@ func (a *acm) cleanupThread(logger service.LoggerFunc, e service.ErrorFunc, stop
 			{
 				for id, t := range a.tokens {
 					if !t.CheckValid() {
-						delete(a.tokens, id)
+						hasChild := false
+						for _, tt := range a.tokens {
+							if tt.parent == t {
+								hasChild = true
+							}
+						}
+						if !hasChild {
+							delete(a.tokens, id)
+						}
 					}
 				}
 			}
@@ -121,6 +129,13 @@ func (a *acm) UpdateToken(id string, layers ...map[string]bool) error {
 		for pn, ps := range l {
 			if !funk.Contains(a.permissions, pn) {
 				return errors.New("Permission not found")
+			}
+			if ps {
+				if t.parent != nil {
+					if !(*t.parent.permissions)[pn] {
+						return errors.New("Cannot allow permission that is not allowed in parent")
+					}
+				}
 			}
 			(*t.permissions)[pn] = ps
 		}
