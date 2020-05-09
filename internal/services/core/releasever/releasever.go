@@ -3,6 +3,7 @@ package relver
 import (
 	"context"
 	"errors"
+	"net/http"
 	"strings"
 	"sync"
 	"time"
@@ -10,9 +11,12 @@ import (
 	"github.com/blang/semver"
 	"github.com/ftCommunity/roboheart/internal/service"
 	"github.com/ftCommunity/roboheart/internal/services/core/acm"
+	"github.com/ftCommunity/roboheart/internal/services/core/web"
+	"github.com/ftCommunity/roboheart/package/api"
 	"github.com/ftCommunity/roboheart/package/servicehelpers"
 	"github.com/ftCommunity/roboheart/package/threadmanager"
 	"github.com/google/go-github/v31/github"
+	"github.com/gorilla/mux"
 )
 
 const (
@@ -30,6 +34,8 @@ type relver struct {
 	error               service.ErrorFunc
 	tm                  *threadmanager.ThreadManager
 	acm                 acm.ACM
+	web                 web.Web
+	mux                 *mux.Router
 }
 
 type ReleaseVersion interface {
@@ -64,14 +70,55 @@ func (r *relver) Init(services map[string]service.Service, logger service.Logger
 	return nil
 }
 
-func (r *relver) Dependencies() ([]string, []string)                         { return []string{"acm"}, []string{} }
-func (r *relver) SetAdditionalDependencies(map[string]service.Service) error { return nil }
 func (r *relver) Stop() error {
 	r.tm.StopAll()
 	return nil
 }
+
 func (r *relver) Name() string                       { return "relver" }
+func (r *relver) Dependencies() ([]string, []string) { return []string{"acm"}, []string{"web"} }
+
+func (r *relver) SetAdditionalDependencies(services map[string]service.Service) error {
+	if err := servicehelpers.CheckAdditionalDependencies(r, services); err != nil {
+		return err
+	}
+	var ok bool
+	r.web, ok = services["web"].(web.Web)
+	if !ok {
+		return errors.New("Type assertion error")
+	}
+	r.configureWeb()
+	return nil
+}
+
 func (r *relver) UnsetAdditionalDependencies() {}
+
+func (r *relver) configureWeb() {
+	r.mux = r.web.RegisterServiceAPI(r)
+	r.mux.HandleFunc("/release", func(w http.ResponseWriter, _ *http.Request) {
+		defer r.lock.Unlock()
+		r.lock.Lock()
+		if r.release != nil {
+			api.ResponseWriter(w, 200, r.release)
+		} else {
+			api.ErrorResponseWriter(w, 503, errors.New("Version information not available"))
+		}
+	})
+	r.mux.HandleFunc("/prerelease", func(w http.ResponseWriter, _ *http.Request) {
+		defer r.lock.Unlock()
+		r.lock.Lock()
+		if r.prerelease != nil {
+			api.ResponseWriter(w, 200, r.prerelease)
+		} else {
+			api.ErrorResponseWriter(w, 503, errors.New("Version information not available"))
+		}
+	})
+	r.mux.HandleFunc("/releases", func(w http.ResponseWriter, _ *http.Request) {
+		defer r.lock.Unlock()
+		r.lock.Lock()
+		api.ResponseWriter(w, 200, r.releases)
+	})
+}
 
 func (r *relver) updateThread(logger service.LoggerFunc, e service.ErrorFunc, stop, stopped chan interface{}) {
 	if err := r.getReleaseData(); err != nil {
