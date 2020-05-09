@@ -64,11 +64,14 @@ func (r *relver) Init(services map[string]service.Service, logger service.Logger
 	return nil
 }
 
-func (r *relver) Stop() error                                                { return nil }
-func (r *relver) Name() string                                               { return "relver" }
 func (r *relver) Dependencies() ([]string, []string)                         { return []string{"acm"}, []string{} }
 func (r *relver) SetAdditionalDependencies(map[string]service.Service) error { return nil }
-func (r *relver) UnsetAdditionalDependencies()                               {}
+func (r *relver) Stop() error {
+	r.tm.StopAll()
+	return nil
+}
+func (r *relver) Name() string                       { return "relver" }
+func (r *relver) UnsetAdditionalDependencies() {}
 
 func (r *relver) updateThread(logger service.LoggerFunc, e service.ErrorFunc, stop, stopped chan interface{}) {
 	if err := r.getReleaseData(); err != nil {
