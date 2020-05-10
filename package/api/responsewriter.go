@@ -16,8 +16,8 @@ func ErrorResponseWriter(w http.ResponseWriter, code int, err error) {
 	jsonResponseWriter(w, code, Response{Status: "Error", Error: err.Error()})
 }
 
-func ResponseWriter(w http.ResponseWriter, code int, payload interface{}) {
-	jsonResponseWriter(w, code, Response{Status: "OK", Data: payload})
+func ResponseWriter(w http.ResponseWriter, payload interface{}) {
+	jsonResponseWriter(w, 200, Response{Status: "OK", Data: payload})
 }
 
 func jsonResponseWriter(w http.ResponseWriter, code int, raw interface{}) {

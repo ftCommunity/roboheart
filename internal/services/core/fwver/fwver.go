@@ -60,7 +60,7 @@ func (f *fwver) UnsetAdditionalDependencies() {}
 func (f *fwver) configureWeb() {
 	f.mux = f.web.RegisterServiceAPI(f)
 	f.mux.HandleFunc("/version", func(w http.ResponseWriter, _ *http.Request) {
-		api.ResponseWriter(w, 200, f.semver.String())
+		api.ResponseWriter(w, f.semver.String())
 	})
 }
 

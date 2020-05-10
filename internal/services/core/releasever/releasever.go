@@ -99,7 +99,7 @@ func (r *relver) configureWeb() {
 		defer r.lock.Unlock()
 		r.lock.Lock()
 		if r.release != nil {
-			api.ResponseWriter(w, 200, r.release)
+			api.ResponseWriter(w, r.release)
 		} else {
 			api.ErrorResponseWriter(w, 503, errors.New("Version information not available"))
 		}
@@ -108,7 +108,7 @@ func (r *relver) configureWeb() {
 		defer r.lock.Unlock()
 		r.lock.Lock()
 		if r.prerelease != nil {
-			api.ResponseWriter(w, 200, r.prerelease)
+			api.ResponseWriter(w, r.prerelease)
 		} else {
 			api.ErrorResponseWriter(w, 503, errors.New("Version information not available"))
 		}
@@ -116,7 +116,7 @@ func (r *relver) configureWeb() {
 	r.mux.HandleFunc("/releases", func(w http.ResponseWriter, _ *http.Request) {
 		defer r.lock.Unlock()
 		r.lock.Lock()
-		api.ResponseWriter(w, 200, r.releases)
+		api.ResponseWriter(w, r.releases)
 	})
 }
 
