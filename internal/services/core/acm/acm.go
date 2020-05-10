@@ -13,6 +13,10 @@ import (
 
 var (
 	DEFAULTS []string = []string{"root", "user", "app"}
+
+const (
+	tokenTotalLifetime   = 1 * time.Hour
+	tokenRefreshLifetime = 15 * time.Minute
 )
 
 type acm struct {
@@ -158,6 +162,10 @@ func (a *acm) createToken() string {
 		return ""
 	}
 	t := new(token)
+	t.totallifetime = tokenTotalLifetime
+	t.refeshlifetime = tokenRefreshLifetime
+	t.created = time.Now()
+	t.Refresh()
 	t.permissions = &map[string]bool{}
 	a.tokens[id.String()] = t
 	return id.String()
