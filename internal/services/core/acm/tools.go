@@ -20,3 +20,7 @@ func CheckTokenPermission(acm ACM, token string, permission string) error {
 	}
 	return nil
 }
+
+func IsUserError(err error) bool {
+	return err == NotPermittedError || err == TokenNotFoundError
+}

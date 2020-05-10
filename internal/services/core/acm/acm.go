@@ -12,7 +12,9 @@ import (
 )
 
 var (
-	DEFAULTS []string = []string{"root", "user", "app"}
+	DEFAULTS           []string = []string{"root", "user", "app"}
+	TokenNotFoundError          = errors.New("Token not found")
+)
 
 const (
 	tokenTotalLifetime   = 1 * time.Hour
@@ -150,7 +152,7 @@ func (a *acm) UpdateToken(id string, layers ...map[string]bool) error {
 func (a *acm) GetToken(id string) (*token, error) {
 	t, ok := a.tokens[id]
 	if !ok {
-		return nil, errors.New("Token not found")
+		return nil, TokenNotFoundError
 	}
 	return t, nil
 }
