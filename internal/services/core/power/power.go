@@ -22,7 +22,7 @@ type power struct {
 type Power interface {
 	Poweroff(token string) error
 	Reboot(token string) error
-	SetWakeAlarm(t time.Time) error
+	SetWakeAlarm(t time.Time, token string) error
 }
 
 func (p *power) Init(services map[string]service.Service, _ service.LoggerFunc, _ service.ErrorFunc) error {
@@ -60,7 +60,10 @@ func (p *power) Reboot(token string) error {
 	return cmd.Run()
 }
 
-func (p *power) SetWakeAlarm(t time.Time) error {
+func (p *power) SetWakeAlarm(t time.Time, token string) error {
+	if err := acm.CheckTokenPermission(p.acm, token, PERMISSION); err != nil {
+		return err
+	}
 	cmd := exec.Command("echo", ">", strconv.Itoa(int(t.Unix())))
 	return cmd.Run()
 }
