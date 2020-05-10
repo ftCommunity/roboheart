@@ -71,7 +71,7 @@ func (p *power) configureWeb() {
 		}
 		if err := p.Poweroff(data.Token); err != nil {
 			code := 500
-			if err == acm.NotPermittedError {
+			if acm.IsUserError(err) {
 				code = 403
 			}
 			api.ErrorResponseWriter(w, code, err)
@@ -86,7 +86,7 @@ func (p *power) configureWeb() {
 		}
 		if err := p.Reboot(data.Token); err != nil {
 			code := 500
-			if err == acm.NotPermittedError {
+			if acm.IsUserError(err) {
 				code = 403
 			}
 			api.ErrorResponseWriter(w, code, err)
@@ -101,7 +101,7 @@ func (p *power) configureWeb() {
 		}
 		if err := p.SetWakeAlarm(time.Unix(data.Time, 0), data.Token); err != nil {
 			code := 500
-			if err == acm.NotPermittedError {
+			if acm.IsUserError(err) {
 				code = 403
 			}
 			api.ErrorResponseWriter(w, code, err)
@@ -109,6 +109,21 @@ func (p *power) configureWeb() {
 			api.ResponseWriter(w, nil)
 		}
 	})
+	p.mux.HandleFunc("/wakealarm", func(w http.ResponseWriter, r *http.Request) {
+		data := &api.TokenRequest{}
+		if !api.RequestLoader(r, w, data) {
+			return
+		}
+		if err := p.UnsetWakeAlarm(data.Token); err != nil {
+			code := 500
+			if acm.IsUserError(err) {
+				code = 403
+			}
+			api.ErrorResponseWriter(w, code, err)
+		} else {
+			api.ResponseWriter(w, nil)
+		}
+	}).Methods("DELETE")
 }
 
 func (p *power) Poweroff(token string) error {
