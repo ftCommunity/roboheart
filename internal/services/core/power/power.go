@@ -29,6 +29,7 @@ type Power interface {
 	Poweroff(token string) error
 	Reboot(token string) error
 	SetWakeAlarm(t time.Time, token string) error
+	UnsetWakeAlarm(token string) error
 }
 
 func (p *power) Init(services map[string]service.Service, _ service.LoggerFunc, _ service.ErrorFunc) error {
@@ -132,6 +133,10 @@ func (p *power) SetWakeAlarm(t time.Time, token string) error {
 	}
 	cmd := exec.Command("echo", ">", strconv.Itoa(int(t.Unix())))
 	return cmd.Run()
+}
+
+func (p *power) UnsetWakeAlarm(token string) error {
+	return p.SetWakeAlarm(time.Unix(0, 0), token)
 }
 
 var Service = new(power)
