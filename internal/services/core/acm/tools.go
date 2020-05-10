@@ -2,6 +2,10 @@ package acm
 
 import "errors"
 
+var (
+	NotPermittedError = errors.New("Operation not permitted")
+)
+
 func CheckTokenPermission(acm ACM, token string, permission string) error {
 	t, err := acm.GetToken(token)
 	if err != nil {
@@ -12,7 +16,7 @@ func CheckTokenPermission(acm ACM, token string, permission string) error {
 		return err
 	}
 	if !perm {
-		return errors.New("Operation not permitted")
+		return NotPermittedError
 	}
 	return nil
 }
