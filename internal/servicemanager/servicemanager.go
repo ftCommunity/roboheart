@@ -11,7 +11,6 @@ import (
 
 type ServiceState struct {
 	service service.Service
-	core    bool
 	running bool
 	addset  bool //Additional dependencies set
 }
@@ -21,30 +20,12 @@ type ServiceManager struct {
 }
 
 func (sm *ServiceManager) Init() error {
-	//inititialize core services
+	//inititialize services
 	if err := sm.initServices(func() []string {
 		sl := make([]string, 0)
 		//iterate over services
-		for sn, ss := range sm.services {
-			//filter on core services
-			if ss.core {
-				sl = append(sl, sn)
-			}
-		}
-		return sl
-	}()); err != nil {
-		//return in case of error
-		return err
-	}
-	//inititialize non-core services
-	if err := sm.initServices(func() []string {
-		sl := make([]string, 0)
-		//iterate over services
-		for sn, ss := range sm.services {
-			//filter on non-core services
-			if !ss.core {
-				sl = append(sl, sn)
-			}
+		for sn := range sm.services {
+			sl = append(sl, sn)
 		}
 		return sl
 	}()); err != nil {
@@ -179,10 +160,6 @@ func (sm *ServiceManager) addService(s service.Service) {
 	sm.services[s.Name()] = &ServiceState{service: s}
 }
 
-func (sm *ServiceManager) addCoreService(s service.Service) {
-	sm.services[s.Name()] = &ServiceState{service: s, core: true}
-}
-
 func (sm *ServiceManager) getServiceDependencies(sn string) map[string]service.Service {
 	dep := make(map[string]service.Service)
 	dl, _ := sm.services[sn].service.Dependencies()
@@ -261,9 +238,6 @@ func NewServiceManager() (*ServiceManager, error) {
 	//add services
 	for _, s := range services {
 		sm.addService(s)
-	}
-	for _, s := range coreservices {
-		sm.addCoreService(s)
 	}
 	//run checks
 	if err := sm.checkDependencyNames(); err != nil {

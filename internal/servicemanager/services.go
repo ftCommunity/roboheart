@@ -11,9 +11,7 @@ import (
 )
 
 var (
-	services     = []service.Service{
-	}
-	coreservices = []service.Service{
+	services = []service.Service{
 		config.Service,
 		acm.Service,
 		fwver.Service,
