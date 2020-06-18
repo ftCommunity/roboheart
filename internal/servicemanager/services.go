@@ -12,8 +12,8 @@ import (
 
 var (
 	services = []service.Service{
-		config.Service,
 		acm.Service,
+		config.Service,
 		fwver.Service,
 		relver.Service,
 		power.Service,
