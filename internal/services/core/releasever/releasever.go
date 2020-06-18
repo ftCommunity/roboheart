@@ -39,7 +39,7 @@ type relver struct {
 }
 
 type ReleaseVersion interface {
-	Update(token string) error
+	Update(token string) (error, bool)
 	GetRelease() (Release, error)
 	GetPreRelease() (Release, error)
 	GetReleases() []Release
@@ -172,11 +172,11 @@ func (r *relver) getReleaseData() error {
 	return nil
 }
 
-func (r *relver) Update(token string) error {
-	if err := acm.CheckTokenPermission(r.acm, token, PERMISSION_UPDATE); err != nil {
-		return err
+func (r *relver) Update(token string) (error, bool) {
+	if err, uae := r.acm.CheckTokenPermission(token, PERMISSION_UPDATE); err != nil {
+		return err, uae
 	}
-	return r.getReleaseData()
+	return r.getReleaseData(), false
 }
 
 func (r *relver) GetRelease() (Release, error) {

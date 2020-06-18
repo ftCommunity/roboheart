@@ -35,6 +35,7 @@ type ACM interface {
 	CreateToken(defaults []string, layers ...map[string]bool) (string, error)
 	UpdateToken(id string, layers ...map[string]bool) error
 	GetToken(id string) (*token, error)
+	CheckTokenPermission(token string, permission string) (error, bool)
 }
 
 func (a *acm) Init(services map[string]service.Service, logger service.LoggerFunc, e service.ErrorFunc) error {
@@ -155,6 +156,21 @@ func (a *acm) GetToken(id string) (*token, error) {
 		return nil, TokenNotFoundError
 	}
 	return t, nil
+}
+
+func (a *acm) CheckTokenPermission(token string, permission string) (error, bool) {
+	t, err := a.GetToken(token)
+	if err != nil {
+		return err, isUserError(err)
+	}
+	perm, err := t.GetPermission(permission)
+	if err != nil {
+		return err, isUserError(err)
+	}
+	if !perm {
+		return NotPermittedError, true
+	}
+	return nil, false
 }
 
 func (a *acm) createToken() string {

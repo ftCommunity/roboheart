@@ -26,10 +26,10 @@ type power struct {
 }
 
 type Power interface {
-	Poweroff(token string) error
-	Reboot(token string) error
-	SetWakeAlarm(t time.Time, token string) error
-	UnsetWakeAlarm(token string) error
+	Poweroff(token string) (error, bool)
+	Reboot(token string) (error, bool)
+	SetWakeAlarm(t time.Time, token string) (error, bool)
+	UnsetWakeAlarm(token string) (error, bool)
 }
 
 func (p *power) Init(services map[string]service.Service, _ service.LoggerFunc, _ service.ErrorFunc) error {
@@ -69,9 +69,9 @@ func (p *power) configureWeb() {
 		if !api.RequestLoader(r, w, data) {
 			return
 		}
-		if err := p.Poweroff(data.Token); err != nil {
+		if err, uae := p.Poweroff(data.Token); err != nil {
 			code := 500
-			if acm.IsUserError(err) {
+			if uae {
 				code = 403
 			}
 			api.ErrorResponseWriter(w, code, err)
@@ -84,9 +84,9 @@ func (p *power) configureWeb() {
 		if !api.RequestLoader(r, w, data) {
 			return
 		}
-		if err := p.Reboot(data.Token); err != nil {
+		if err, uae := p.Reboot(data.Token); err != nil {
 			code := 500
-			if acm.IsUserError(err) {
+			if uae {
 				code = 403
 			}
 			api.ErrorResponseWriter(w, code, err)
@@ -99,9 +99,9 @@ func (p *power) configureWeb() {
 		if !api.RequestLoader(r, w, data) {
 			return
 		}
-		if err := p.SetWakeAlarm(time.Unix(data.Time, 0), data.Token); err != nil {
+		if err, uae := p.SetWakeAlarm(time.Unix(data.Time, 0), data.Token); err != nil {
 			code := 500
-			if acm.IsUserError(err) {
+			if uae {
 				code = 403
 			}
 			api.ErrorResponseWriter(w, code, err)
@@ -114,9 +114,9 @@ func (p *power) configureWeb() {
 		if !api.RequestLoader(r, w, data) {
 			return
 		}
-		if err := p.UnsetWakeAlarm(data.Token); err != nil {
+		if err, uae := p.UnsetWakeAlarm(data.Token); err != nil {
 			code := 500
-			if acm.IsUserError(err) {
+			if uae {
 				code = 403
 			}
 			api.ErrorResponseWriter(w, code, err)
@@ -126,31 +126,31 @@ func (p *power) configureWeb() {
 	}).Methods("DELETE")
 }
 
-func (p *power) Poweroff(token string) error {
-	if err := acm.CheckTokenPermission(p.acm, token, PERMISSION); err != nil {
-		return err
+func (p *power) Poweroff(token string) (error, bool) {
+	if err, uae := p.acm.CheckTokenPermission(token, PERMISSION); err != nil {
+		return err, uae
 	}
 	cmd := exec.Command("sudo", "poweroff")
-	return cmd.Run()
+	return cmd.Run(), false
 }
 
-func (p *power) Reboot(token string) error {
-	if err := acm.CheckTokenPermission(p.acm, token, PERMISSION); err != nil {
-		return err
+func (p *power) Reboot(token string) (error, bool) {
+	if err, uae := p.acm.CheckTokenPermission(token, PERMISSION); err != nil {
+		return err, uae
 	}
 	cmd := exec.Command("sudo", "reboot")
-	return cmd.Run()
+	return cmd.Run(), false
 }
 
-func (p *power) SetWakeAlarm(t time.Time, token string) error {
-	if err := acm.CheckTokenPermission(p.acm, token, PERMISSION); err != nil {
-		return err
+func (p *power) SetWakeAlarm(t time.Time, token string) (error, bool) {
+	if err, uae := p.acm.CheckTokenPermission(token, PERMISSION); err != nil {
+		return err, uae
 	}
 	cmd := exec.Command("echo", ">", strconv.Itoa(int(t.Unix())))
-	return cmd.Run()
+	return cmd.Run(), false
 }
 
-func (p *power) UnsetWakeAlarm(token string) error {
+func (p *power) UnsetWakeAlarm(token string) (error, bool) {
 	return p.SetWakeAlarm(time.Unix(0, 0), token)
 }
 
