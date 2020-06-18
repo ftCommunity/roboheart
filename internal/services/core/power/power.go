@@ -41,7 +41,7 @@ func (p *power) Init(services map[string]service.Service, _ service.LoggerFunc, 
 		return errors.New("Type assertion error")
 	}
 	p.acm = sacm
-	p.acm.RegisterPermission(PERMISSION, map[string]bool{"root": true, "user": true, "app": false})
+	p.acm.RegisterPermission(PERMISSION, map[string]bool{"user": true, "app": false})
 	return nil
 }
 

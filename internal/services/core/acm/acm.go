@@ -95,6 +95,7 @@ func (a *acm) RegisterPermission(name string, defaults map[string]bool) error {
 	if defaults == nil {
 		return nil
 	}
+	(*a.defaults["root"])[name] = true
 	for dn, ds := range defaults {
 		if _, ok := a.defaults[dn]; !ok {
 			return errors.New("Unknown default " + dn)
