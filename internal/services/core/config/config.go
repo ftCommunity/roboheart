@@ -71,6 +71,8 @@ func (c *config) configCommitThread(logger service.LoggerFunc, e service.ErrorFu
 
 func (c *config) UnsetAdditionalDependencies() {}
 
-func (c *config) GetTree() uci.Tree { return c.tree }
+func (c *config) GetServiceConfig(s service.Service) *serviceConfig {
+	return newServiceConfig(c, s.Name())
+}
 
 var Service = new(config)
