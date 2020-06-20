@@ -163,6 +163,7 @@ func (a *acm) CheckTokenPermission(token string, permission string) (error, bool
 	if err != nil {
 		return err, isUserError(err)
 	}
+	t.Refresh()
 	perm, err := t.GetPermission(permission)
 	if err != nil {
 		return err, isUserError(err)
