@@ -132,6 +132,7 @@ func (a *acm) UpdateToken(id string, layers ...map[string]bool) error {
 	if !ok {
 		return errors.New("Token not found")
 	}
+	disabled := map[string]bool{}
 	for _, l := range layers {
 		for pn, ps := range l {
 			if !funk.Contains(a.permissions, pn) {
@@ -143,8 +144,15 @@ func (a *acm) UpdateToken(id string, layers ...map[string]bool) error {
 						return errors.New("Cannot allow permission that is not allowed in parent")
 					}
 				}
+			} else {
+				disabled[pn] = false
 			}
 			(*t.permissions)[pn] = ps
+		}
+	}
+	for _, t := range a.tokens {
+		if t.parent == t {
+			a.UpdateToken(t.id, disabled)
 		}
 	}
 	return nil
