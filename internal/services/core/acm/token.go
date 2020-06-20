@@ -13,6 +13,7 @@ type token struct {
 	refeshlifetime time.Duration
 	permissions    *map[string]bool
 	parent         *token
+	id             string
 }
 
 func (t *token) GetPermission(name string) (bool, error) {

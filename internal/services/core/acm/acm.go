@@ -183,6 +183,7 @@ func (a *acm) createToken() string {
 	t.refeshlifetime = tokenRefreshLifetime
 	t.Refresh()
 	t.permissions = &map[string]bool{}
+	t.id = id.String()
 	a.tokens[id.String()] = t
 	return id.String()
 }
