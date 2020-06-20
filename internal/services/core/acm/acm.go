@@ -12,8 +12,8 @@ import (
 )
 
 var (
-	DEFAULTS           []string = []string{"root", "user", "app"}
-	TokenNotFoundError          = errors.New("Token not found")
+	DEFAULTS           = []string{"root", "user", "app"}
+	TokenNotFoundError = errors.New("Token not found")
 )
 
 const (
