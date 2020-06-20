@@ -8,11 +8,11 @@ import (
 )
 
 type token struct {
-	acm                           acm
-	created, lastrefresh          time.Time
-	totallifetime, refeshlifetime time.Duration
-	permissions                   *map[string]bool
-	parent                        *token
+	acm            acm
+	lastrefresh    time.Time
+	refeshlifetime time.Duration
+	permissions    *map[string]bool
+	parent         *token
 }
 
 func (t *token) GetPermission(name string) (bool, error) {
@@ -26,9 +26,6 @@ func (t *token) GetPermission(name string) (bool, error) {
 }
 
 func (t *token) CheckValid() bool {
-	if time.Now().Sub(t.created) > t.totallifetime {
-		return false
-	}
 	if time.Now().Sub(t.lastrefresh) > t.refeshlifetime {
 		return false
 	}
