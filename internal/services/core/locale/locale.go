@@ -44,7 +44,7 @@ type Locale interface {
 func (l *locale) Init(services map[string]service.Service, logger service.LoggerFunc, e service.ErrorFunc) error {
 	l.logger = logger
 	l.error = e
-	if err := servicehelpers.CheckMainDependencies(r, services); err != nil {
+	if err := servicehelpers.CheckMainDependencies(l, services); err != nil {
 		return err
 	}
 	var ok bool
@@ -90,7 +90,7 @@ func (l *locale) SetLocale(token, locale string) (error, bool) {
 	}
 	olddata := strings.Split(string(raw), "\n")
 	data := []string{}
-	for i, line := range olddata {
+	for _, line := range olddata {
 		if !strings.Contains(line, "LC_ALL") {
 			data = append(data, line)
 		}
