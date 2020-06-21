@@ -19,6 +19,8 @@ type ServiceState struct {
 	}
 	running bool
 	addset  bool //Additional dependencies set
+	logger  service.LoggerFunc
+	error   service.ErrorFunc
 }
 
 type ServiceManager struct {
@@ -98,9 +100,9 @@ func (sm *ServiceManager) Stop() error {
 				if sts := ss.service.stoppable; sts != nil {
 					sts.Stop()
 					//log that
-					sm.genServiceLogger(sn)("Stopped")
+					ss.logger("Stopped")
 				} else {
-					sm.genServiceLogger(sn)("Marked as stopped")
+					ss.logger("Marked as stopped")
 				}
 				//save that
 				ss.running = false
@@ -154,14 +156,14 @@ func (sm *ServiceManager) initServices(sl []string) error {
 				//inititialize if there are no missing dependencies
 				err := ss.service.base.Init(
 					sm.getServiceDependencies(sn),
-					sm.genServiceLogger(sn),
-					sm.genServiceError(sn),
+					ss.logger,
+					ss.error,
 				)
 				if err != nil {
 					return err
 				}
 				//log running
-				sm.genServiceLogger(sn)("Started")
+				ss.logger("Started")
 				//save running state
 				ss.running = true
 				//increase counter
@@ -173,6 +175,7 @@ func (sm *ServiceManager) initServices(sl []string) error {
 }
 
 func (sm *ServiceManager) addService(s service.Service) {
+	sn := s.Name()
 	ss := &ServiceState{}
 	ss.service.base = s
 	if sts, ok := s.(service.StoppableService); ok {
@@ -187,7 +190,9 @@ func (sm *ServiceManager) addService(s service.Service) {
 	if aus, ok := s.(service.AddDependingUnsetService); ok {
 		ss.service.addunset = aus
 	}
-	sm.services[s.Name()] = ss
+	ss.logger = sm.genServiceLogger(sn)
+	ss.error = sm.genServiceError(sn)
+	sm.services[sn] = ss
 }
 
 func (sm *ServiceManager) getServiceDependencies(sn string) map[string]service.Service {
