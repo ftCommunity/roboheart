@@ -20,12 +20,12 @@ func checkDependencies(req []string, svcs map[string]service.Service) error {
 	return nil
 }
 
-func CheckMainDependencies(svc service.Service, svcs map[string]service.Service) error {
-	req, _ := svc.Dependencies()
+func CheckMainDependencies(ds service.DependingService, svcs map[string]service.Service) error {
+	req, _ := ds.Dependencies()
 	return checkDependencies(req, svcs)
 }
 
-func CheckAdditionalDependencies(svc service.Service, svcs map[string]service.Service) error {
-	_, req := svc.Dependencies()
+func CheckAdditionalDependencies(ds service.DependingService, svcs map[string]service.Service) error {
+	_, req := ds.Dependencies()
 	return checkDependencies(req, svcs)
 }

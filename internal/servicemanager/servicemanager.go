@@ -10,7 +10,13 @@ import (
 )
 
 type ServiceState struct {
-	service service.Service
+	service struct {
+		base         service.Service
+		stoppable    service.StoppableService
+		depending    service.DependingService
+		adddepending service.AddDependingService
+		addunset     service.AddDependingUnsetService
+	}
 	running bool
 	addset  bool //Additional dependencies set
 }
@@ -33,7 +39,9 @@ func (sm *ServiceManager) Init() error {
 		return err
 	}
 	for sn, ss := range sm.services {
-		ss.service.SetAdditionalDependencies(sm.getServiceAdditionalDependencies(sn))
+		if ads := ss.service.adddepending; ads != nil {
+			ads.SetAdditionalDependencies(sm.getServiceAdditionalDependencies(sn))
+		}
 	}
 	return nil
 }
@@ -46,7 +54,9 @@ func (sm *ServiceManager) Stop() error {
 		wg.Add(1)
 		go func(sn string, ss *ServiceState) {
 			//unset dependencies
-			ss.service.UnsetAdditionalDependencies()
+			if aus := ss.service.addunset; aus != nil {
+				aus.UnsetAdditionalDependencies()
+			}
 			//decrease wait group
 			wg.Done()
 		}(sn, ss)
@@ -74,18 +84,24 @@ func (sm *ServiceManager) Stop() error {
 					continue
 				}
 				//get dependencies
-				dl, _ := dss.service.Dependencies()
-				if funk.ContainsString(dl, sn) {
-					//save that depending service is running
-					deprunning = true
+				if ds := dss.service.depending; ds != nil {
+					dl, _ := ds.Dependencies()
+					if funk.ContainsString(dl, sn) {
+						//save that depending service is running
+						deprunning = true
+					}
 				}
 			}
 			//initiate stop procedure if no depending service is running
 			if !deprunning {
 				//stop it
-				ss.service.Stop()
-				//log that
-				sm.genServiceLogger(sn)("Stopped")
+				if sts := ss.service.stoppable; sts != nil {
+					sts.Stop()
+					//log that
+					sm.genServiceLogger(sn)("Stopped")
+				} else {
+					sm.genServiceLogger(sn)("Marked as stopped")
+				}
 				//save that
 				ss.running = false
 			}
@@ -122,21 +138,21 @@ func (sm *ServiceManager) initServices(sl []string) error {
 				//ignore if running
 				continue
 			}
-			//get service
-			s := ss.service
-			//get dependencies
-			dl, _ := ss.service.Dependencies()
 			dm := false
-			//iterate over dependencies
-			for _, d := range dl {
-				if !sm.services[d].running {
-					//set flag if dependency is not running
-					dm = true
+			//resolve dependencies
+			if ds := ss.service.depending; ds != nil {
+				dl, _ := ds.Dependencies()
+				//iterate over dependencies
+				for _, d := range dl {
+					if !sm.services[d].running {
+						//set flag if dependency is not running
+						dm = true
+					}
 				}
 			}
 			if !dm {
 				//inititialize if there are no missing dependencies
-				err := s.Init(
+				err := ss.service.base.Init(
 					sm.getServiceDependencies(sn),
 					sm.genServiceLogger(sn),
 					sm.genServiceError(sn),
@@ -157,23 +173,41 @@ func (sm *ServiceManager) initServices(sl []string) error {
 }
 
 func (sm *ServiceManager) addService(s service.Service) {
-	sm.services[s.Name()] = &ServiceState{service: s}
+	ss := &ServiceState{}
+	ss.service.base = s
+	if sts, ok := s.(service.StoppableService); ok {
+		ss.service.stoppable = sts
+	}
+	if ds, ok := s.(service.DependingService); ok {
+		ss.service.depending = ds
+	}
+	if ads, ok := s.(service.AddDependingService); ok {
+		ss.service.adddepending = ads
+	}
+	if aus, ok := s.(service.AddDependingUnsetService); ok {
+		ss.service.addunset = aus
+	}
+	sm.services[s.Name()] = ss
 }
 
 func (sm *ServiceManager) getServiceDependencies(sn string) map[string]service.Service {
 	dep := make(map[string]service.Service)
-	dl, _ := sm.services[sn].service.Dependencies()
-	for _, d := range dl {
-		dep[d] = sm.services[d].service
+	if ds := sm.services[sn].service.depending; ds != nil {
+		dl, _ := ds.Dependencies()
+		for _, d := range dl {
+			dep[d] = sm.services[d].service.base
+		}
 	}
 	return dep
 }
 
 func (sm *ServiceManager) getServiceAdditionalDependencies(sn string) map[string]service.Service {
 	dep := make(map[string]service.Service)
-	_, dl := sm.services[sn].service.Dependencies()
-	for _, d := range dl {
-		dep[d] = sm.services[d].service
+	if ds := sm.services[sn].service.depending; ds != nil {
+		_, dl := ds.Dependencies()
+		for _, d := range dl {
+			dep[d] = sm.services[d].service.base
+		}
 	}
 	return dep
 }
@@ -182,14 +216,16 @@ func (sm *ServiceManager) checkCircularDependencies() error {
 	//iterate over services
 	for sn, ss := range sm.services {
 		//return error if one service has a circular dependency
-		if err := sm.serviceCheckCircularDependencies(sn, ss.service, &[]string{}); err != nil {
-			return err
+		if ds := ss.service.depending; ds != nil {
+			if err := sm.serviceCheckCircularDependencies(sn, ds, &[]string{}); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
 }
 
-func (sm *ServiceManager) serviceCheckCircularDependencies(start string, check service.Service, checked *[]string) error {
+func (sm *ServiceManager) serviceCheckCircularDependencies(start string, check service.DependingService, checked *[]string) error {
 	//start: start service name
 	//check: current service
 	//checked: already checked services sincde start
@@ -207,8 +243,10 @@ func (sm *ServiceManager) serviceCheckCircularDependencies(start string, check s
 			//save service name
 			*checked = append(*checked, dn)
 			//run the next check
-			if err := sm.serviceCheckCircularDependencies(start, sm.services[dn].service, checked); err != nil {
-				return err
+			if nds := sm.services[dn].service.depending; nds != nil {
+				if err := sm.serviceCheckCircularDependencies(start, nds, checked); err != nil {
+					return err
+				}
 			}
 		}
 	}
@@ -218,13 +256,15 @@ func (sm *ServiceManager) serviceCheckCircularDependencies(start string, check s
 func (sm *ServiceManager) checkDependencyNames() error {
 	//iterate over services
 	for sn, ss := range sm.services {
-		//get dependencies
-		dl, adl := ss.service.Dependencies()
-		//range over dependencies and additional dependencies
-		for _, dn := range append(dl, adl...) {
-			if _, ok := sm.services[dn]; !ok {
-				//return error if service is not unknown
-				return errors.New("Service " + sn + " requests dependency " + dn + " which is not definded")
+		if ds := ss.service.depending; ds != nil {
+			//get dependencies
+			dl, adl := ds.Dependencies()
+			//range over dependencies and additional dependencies
+			for _, dn := range append(dl, adl...) {
+				if _, ok := sm.services[dn]; !ok {
+					//return error if service is not unknown
+					return errors.New("Service " + sn + " requests dependency " + dn + " which is not definded")
+				}
 			}
 		}
 	}
