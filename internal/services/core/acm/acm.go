@@ -52,11 +52,8 @@ func (a *acm) Init(services map[string]service.Service, logger service.LoggerFun
 	return nil
 }
 
-func (a *acm) Stop() error                                                { a.tm.StopAll(); return nil }
-func (a *acm) Name() string                                               { return "acm" }
-func (a *acm) Dependencies() ([]string, []string)                         { return []string{}, []string{} }
-func (a *acm) SetAdditionalDependencies(map[string]service.Service) error { return nil }
-func (a *acm) UnsetAdditionalDependencies()                               {}
+func (a *acm) Stop() error  { a.tm.StopAll(); return nil }
+func (a *acm) Name() string { return "acm" }
 
 func (a *acm) cleanupThread(logger service.LoggerFunc, e service.ErrorFunc, stop, stopped chan interface{}) {
 	for {

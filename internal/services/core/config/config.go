@@ -43,10 +43,6 @@ func (c *config) Stop() error {
 
 func (c *config) Name() string { return "config" }
 
-func (c *config) Dependencies() ([]string, []string) { return []string{}, []string{} }
-
-func (c *config) SetAdditionalDependencies(map[string]service.Service) error { return nil }
-
 func (c *config) commit() error {
 	return c.tree.Commit()
 }
@@ -68,8 +64,6 @@ func (c *config) configCommitThread(logger service.LoggerFunc, e service.ErrorFu
 		}
 	}
 }
-
-func (c *config) UnsetAdditionalDependencies() {}
 
 func (c *config) GetServiceConfig(s service.Service) *serviceConfig {
 	return newServiceConfig(c, s.Name())

@@ -70,7 +70,6 @@ func (l *locale) Stop() error {
 func (l *locale) Name() string                                               { return "locale" }
 func (l *locale) Dependencies() ([]string, []string)                         { return []string{"acm"}, []string{"web"} }
 func (l *locale) SetAdditionalDependencies(map[string]service.Service) error { return nil }
-func (l *locale) UnsetAdditionalDependencies()                               {}
 
 func (l *locale) RegisterOnLocaleChangeCallback(cb func(locale string)) {
 	l.callbacks = append(l.callbacks, cb)

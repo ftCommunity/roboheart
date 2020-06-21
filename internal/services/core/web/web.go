@@ -61,10 +61,7 @@ func (w *web) Stop() error {
 	return nil
 }
 
-func (w *web) Name() string                                               { return "web" }
-func (w *web) Dependencies() ([]string, []string)                         { return []string{}, []string{} }
-func (w *web) SetAdditionalDependencies(map[string]service.Service) error { return nil }
-func (w *web) UnsetAdditionalDependencies()                               {}
+func (w *web) Name() string { return "web" }
 
 func (w *web) RegisterServiceAPI(s service.Service) *mux.Router {
 	m := getSubMux(w.apiMux, "/"+s.Name())

@@ -39,7 +39,6 @@ func (f *fwver) Init(map[string]service.Service, service.LoggerFunc, service.Err
 	return nil
 }
 
-func (f *fwver) Stop() error                        { return nil }
 func (f *fwver) Name() string                       { return "fwver" }
 func (f *fwver) Dependencies() ([]string, []string) { return []string{}, []string{"web"} }
 func (f *fwver) SetAdditionalDependencies(services map[string]service.Service) error {
@@ -54,8 +53,6 @@ func (f *fwver) SetAdditionalDependencies(services map[string]service.Service) e
 	f.configureWeb()
 	return nil
 }
-
-func (f *fwver) UnsetAdditionalDependencies() {}
 
 func (f *fwver) configureWeb() {
 	f.mux = f.web.RegisterServiceAPI(f)

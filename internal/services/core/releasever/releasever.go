@@ -91,8 +91,6 @@ func (r *relver) SetAdditionalDependencies(services map[string]service.Service) 
 	return nil
 }
 
-func (r *relver) UnsetAdditionalDependencies() {}
-
 func (r *relver) configureWeb() {
 	r.mux = r.web.RegisterServiceAPI(r)
 	r.mux.HandleFunc("/release", func(w http.ResponseWriter, _ *http.Request) {
