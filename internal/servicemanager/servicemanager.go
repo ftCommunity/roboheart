@@ -289,7 +289,7 @@ func NewServiceManager() (*ServiceManager, error) {
 	sm := new(ServiceManager)
 	sm.services = make(map[string]*ServiceState)
 	//add services
-	for _, s := range services {
+	for _, s := range getServices() {
 		sm.addService(s)
 	}
 	//run checks

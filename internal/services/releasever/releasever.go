@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	PERMISSION_BASE   = "releasever"
+	PERMISSION_BASE   = "relver"
 	PERMISSION_UPDATE = PERMISSION_BASE + "." + "update"
 )
 

@@ -7,18 +7,38 @@ import (
 	"github.com/ftCommunity/roboheart/internal/services/core/fwver"
 	"github.com/ftCommunity/roboheart/internal/services/core/locale"
 	"github.com/ftCommunity/roboheart/internal/services/core/power"
-	"github.com/ftCommunity/roboheart/internal/services/core/releasever"
 	"github.com/ftCommunity/roboheart/internal/services/core/web"
+	"github.com/ftCommunity/roboheart/internal/services/releasever"
 )
 
 var (
-	services = []service.Service{
-		acm.Service,
-		config.Service,
-		fwver.Service,
-		locale.Service,
-		relver.Service,
-		power.Service,
-		web.Service,
+	services = map[string]service.Service{
+		"acm":    acm.Service,
+		"config": config.Service,
+		"fwver":  fwver.Service,
+		"locale": locale.Service,
+		"relver": relver.Service,
+		"power":  power.Service,
+		"web":    web.Service,
+		}
+
+	buildservices = map[string]bool{
+		"acm":    true,
+		"config": true,
+		"fwver":  true,
+		"locale": true,
+		"relver": true,
+		"power":  true,
+		"web":    true,
 	}
 )
+
+func getServices() []service.Service {
+	sl := []service.Service{}
+	for sn, ss := range buildservices {
+		if ss {
+			sl = append(sl, services[sn])
+		}
+	}
+	return sl
+}
