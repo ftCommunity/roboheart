@@ -91,11 +91,11 @@ func (l *locale) SetLocale(token, locale string) (error, bool) {
 	olddata := strings.Split(string(raw), "\n")
 	data := []string{}
 	for _, line := range olddata {
-		if !strings.Contains(line, "LC_ALL") {
+		if !strings.HasPrefix(line, "LC_ALL") {
 			data = append(data, line)
 		}
 	}
-	data = append(data, "LC_ALL="+locale)
+	data = append(data, "LC_ALL=\""+locale+"\"")
 	if err := ioutil.WriteFile(LOCALEPATH, []byte(strings.Join(data, "\n")), fileperm.OS_U_RW_G_RW_A_R); err != nil {
 		return err, false
 	}
