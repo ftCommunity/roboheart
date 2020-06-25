@@ -37,6 +37,7 @@ type locale struct {
 
 type Locale interface {
 	RegisterOnLocaleChangeCallback(func(locale string))
+	GetLocale() (string, error)
 	SetLocale(token, locale string) (error, bool)
 	GetAllowedLocales() []string
 }
@@ -101,6 +102,27 @@ func (l *locale) SetLocale(token, locale string) (error, bool) {
 	}
 	go l.runCallbacks(locale)
 	return nil, false
+}
+
+func (l *locale) GetLocale() (string, error) {
+	l.lock.Lock()
+	defer l.lock.Unlock()
+	raw, err := ioutil.ReadFile(LOCALEPATH)
+	if err != nil {
+		return "", err
+	}
+	locale := ""
+	data := strings.Split(string(raw), "\n")
+	for _, line := range data {
+		if strings.HasPrefix(line, "LC_ALL") {
+			locale = strings.Replace(line, "LC_ALL=", "", 1)
+		}
+	}
+	locale=strings.Replace(locale,"\"","",2)
+	if locale == "" {
+		return "", errors.New("No locale set")
+	}
+	return locale, nil
 }
 
 func (l *locale) GetAllowedLocales() []string {
