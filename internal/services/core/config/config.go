@@ -20,7 +20,7 @@ type config struct {
 }
 
 type Config interface {
-	GetTree() uci.Tree
+	GetServiceConfig(s service.Service) *ServiceConfig
 }
 
 func (c *config) Init(_ map[string]service.Service, logger service.LoggerFunc, e service.ErrorFunc) error {
@@ -65,7 +65,7 @@ func (c *config) configCommitThread(logger service.LoggerFunc, e service.ErrorFu
 	}
 }
 
-func (c *config) GetServiceConfig(s service.Service) *serviceConfig {
+func (c *config) GetServiceConfig(s service.Service) *ServiceConfig {
 	return newServiceConfig(c, s.Name())
 }
 
