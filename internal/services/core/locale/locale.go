@@ -4,11 +4,13 @@ import (
 	"errors"
 	"github.com/ftCommunity/roboheart/internal/services/core/acm"
 	"github.com/ftCommunity/roboheart/internal/services/core/web"
+	"github.com/ftCommunity/roboheart/package/api"
 	fileperm "github.com/ftCommunity/roboheart/package/filepermissions"
 	"github.com/ftCommunity/roboheart/package/servicehelpers"
 	"github.com/gorilla/mux"
 	"github.com/thoas/go-funk"
 	"io/ioutil"
+	"net/http"
 	"strings"
 	"sync"
 
@@ -68,9 +70,53 @@ func (l *locale) Stop() error {
 	return nil
 }
 
-func (l *locale) Name() string                                               { return "locale" }
-func (l *locale) Dependencies() ([]string, []string)                         { return []string{"acm"}, []string{"web"} }
-func (l *locale) SetAdditionalDependencies(map[string]service.Service) error { return nil }
+func (l *locale) Name() string                       { return "locale" }
+func (l *locale) Dependencies() ([]string, []string) { return []string{"acm"}, []string{"web"} }
+
+func (l *locale) SetAdditionalDependencies(services map[string]service.Service) error {
+	if err := servicehelpers.CheckAdditionalDependencies(l, services); err != nil {
+		return err
+	}
+	var ok bool
+	l.web, ok = services["web"].(web.Web)
+	if !ok {
+		return errors.New("Type assertion error")
+	}
+	l.configureWeb()
+	return nil
+}
+
+func (l *locale) configureWeb() {
+	l.mux = l.web.RegisterServiceAPI(l)
+	l.mux.HandleFunc("/locale", func(w http.ResponseWriter, r *http.Request) {
+		if locale, err := l.GetLocale(); err != nil {
+			api.ErrorResponseWriter(w, 500, err)
+		} else {
+			api.ResponseWriter(w, locale)
+		}
+	}).Methods("GET")
+	l.mux.HandleFunc("/locale", func(w http.ResponseWriter, r *http.Request) {
+		data := &struct {
+			api.TokenRequest
+			Locale string `json:"locale"`
+		}{}
+		if !api.RequestLoader(r, w, data) {
+			return
+		}
+		if err, uae := l.SetLocale(data.Token, data.Locale); err != nil {
+			code := 500
+			if uae {
+				code = 403
+			}
+			api.ErrorResponseWriter(w, code, err)
+		} else {
+			api.ResponseWriter(w, nil)
+		}
+	}).Methods("POST")
+	l.mux.HandleFunc("/allowed", func(w http.ResponseWriter, r *http.Request) {
+		api.ResponseWriter(w, l.GetAllowedLocales())
+	}).Methods("GET")
+}
 
 func (l *locale) RegisterOnLocaleChangeCallback(cb func(locale string)) {
 	l.callbacks = append(l.callbacks, cb)
