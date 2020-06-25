@@ -3,6 +3,7 @@ package servicemanager
 import (
 	"errors"
 	"log"
+	"strings"
 	"sync"
 
 	"github.com/ftCommunity/roboheart/internal/service"
@@ -259,19 +260,26 @@ func (sm *ServiceManager) serviceCheckCircularDependencies(start string, check s
 }
 
 func (sm *ServiceManager) checkDependencyNames() error {
+	errs := []string{}
 	//iterate over services
 	for sn, ss := range sm.services {
+		deps := []string{}
 		if ds := ss.service.depending; ds != nil {
 			//get dependencies
 			dl, adl := ds.Dependencies()
 			//range over dependencies and additional dependencies
 			for _, dn := range append(dl, adl...) {
 				if _, ok := sm.services[dn]; !ok {
-					//return error if service is not unknown
-					return errors.New("Service " + sn + " requests dependency " + dn + " which is not definded")
+					deps = append(deps, dn)
 				}
 			}
 		}
+		if len(deps) > 0 {
+			errs = append(errs, sn+"->("+strings.Join(deps, ",")+")")
+		}
+	}
+	if len(errs) > 0 {
+		return errors.New(strings.Join(append([]string{"Service dependency error(s):"}, errs...), "\n"))
 	}
 	return nil
 }
