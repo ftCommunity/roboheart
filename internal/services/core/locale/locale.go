@@ -164,7 +164,7 @@ func (l *locale) GetLocale() (string, error) {
 			locale = strings.Replace(line, "LC_ALL=", "", 1)
 		}
 	}
-	locale=strings.Replace(locale,"\"","",2)
+	locale = strings.Replace(locale, "\"", "", 2)
 	if locale == "" {
 		return "", errors.New("No locale set")
 	}
