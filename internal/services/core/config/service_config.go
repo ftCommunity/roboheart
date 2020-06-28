@@ -21,6 +21,14 @@ func (sc *ServiceConfig) GetBool(section, option string) (bool, bool) {
 	return sc.c.tree.GetBool(sc.confname, section, option)
 }
 
+func (sc *ServiceConfig) GetBoolDefault(section, option string, def bool) bool {
+	if v, ok := sc.GetBool(section, option); ok {
+		return v
+	} else {
+		return def
+	}
+}
+
 func (sc *ServiceConfig) Set(section, option string, values ...string) bool {
 	return sc.c.tree.Set(sc.confname, section, option, values...)
 }
