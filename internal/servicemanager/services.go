@@ -9,6 +9,7 @@ import (
 	"github.com/ftCommunity/roboheart/internal/services/core/power"
 	"github.com/ftCommunity/roboheart/internal/services/core/web"
 	"github.com/ftCommunity/roboheart/internal/services/releasever"
+	"github.com/ftCommunity/roboheart/internal/services/vncserver"
 )
 
 var (
@@ -20,7 +21,9 @@ var (
 		"relver": relver.Service,
 		"power":  power.Service,
 		"web":    web.Service,
-		}
+
+		"vncserver": vncserver.Service,
+	}
 
 	buildservices = map[string]bool{
 		"acm":    true,
@@ -30,6 +33,8 @@ var (
 		"relver": true,
 		"power":  true,
 		"web":    true,
+
+		"vncserver": true,
 	}
 )
 
