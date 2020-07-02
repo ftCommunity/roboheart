@@ -7,9 +7,11 @@ import (
 	"github.com/ftCommunity/roboheart/internal/services/core/config"
 	"github.com/ftCommunity/roboheart/internal/services/core/fwver"
 	"github.com/ftCommunity/roboheart/internal/services/core/web"
+	fileperm "github.com/ftCommunity/roboheart/package/filepermissions"
 	"github.com/ftCommunity/roboheart/package/servicehelpers"
 	"github.com/ftCommunity/roboheart/package/threadmanager"
 	"github.com/gorilla/mux"
+	"os"
 )
 
 const (
@@ -20,6 +22,9 @@ const (
 	PERMISSION_GETAVAILABLE = PERMISSION_BASE + "." + "getavailable"
 	CONFIG_SECTION          = ""
 	CONFIG_TYPE             = "pkgmanager"
+	PATH_BASE               = "/opt/ftc"
+	PATH_PKG                = PATH_BASE + "/" + "packages"
+	PATH_DATA               = PATH_BASE + "/" + "data"
 )
 
 type pkgmanager struct {
@@ -60,6 +65,12 @@ func (p *pkgmanager) Init(services map[string]service.Service, logger service.Lo
 	p.fwver, ok = services["fwver"].(fwver.FWVer)
 	if !ok {
 		return errors.New("Type assertion error")
+	}
+	if err := os.MkdirAll(PATH_PKG, fileperm.OS_U_RW_G_RW_O_R); err != nil {
+		return err
+	}
+	if err := os.MkdirAll(PATH_DATA, fileperm.OS_U_RW_G_RW_O_R); err != nil {
+		return err
 	}
 	p.tm = threadmanager.NewThreadManager(p.logger, p.error)
 	return nil
