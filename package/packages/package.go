@@ -33,8 +33,10 @@ type Language struct {
 }
 
 type Dependency struct {
-	OneOf []struct {
-		ID      string             `json:"id"`
-		Version *marshallers.Range `json:"version"`
-	} `json:"oneof"`
+	OneOf []DependencyOption `json:"oneof"`
+}
+
+type DependencyOption struct{
+	ID      string             `json:"id"`
+	Version *marshallers.Range `json:"version"`
 }
