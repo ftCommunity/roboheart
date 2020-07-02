@@ -14,11 +14,11 @@ type Package struct {
 	Firmware      *marshallers.Range             `json:"firmware"` //allowed firmware versions
 	Multiversion  bool                           `json:"multiversion"`
 	OtherVersions *marshallers.Range             `json:"otherversions"` //if set defnies allowed versions of same package. if unset all versions are allowed
-	Dependencies  map[string]dependency          `json:"dependencies"`  //maps named dependency folders to another package
+	Dependencies  map[string]Dependency          `json:"dependencies"`  //maps named dependency folders to another package
 	Implements    map[string]marshallers.Version `json:"implements"`
 	Name          *string                        `json:"name"`
 	Desc          *string                        `json:"desc"`
-	Languages     map[string]language            `json:"languages"`
+	Languages     map[string]Language            `json:"languages"`
 	Icon          *string                        `json:"icon"`
 	Category      *string                        `json:"category"`
 	AuthorName    *string                        `json:"authorname"`
@@ -27,12 +27,12 @@ type Package struct {
 	Frontend      *string                        `json:"frontend"`
 }
 
-type language struct {
+type Language struct {
 	Name *string `json:"name"`
 	Desc *string `json:"desc"`
 }
 
-type dependency struct {
+type Dependency struct {
 	OneOf []struct {
 		ID      string             `json:"id"`
 		Version *marshallers.Range `json:"version"`
