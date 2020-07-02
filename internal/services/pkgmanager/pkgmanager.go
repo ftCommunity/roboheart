@@ -12,6 +12,7 @@ import (
 	"github.com/ftCommunity/roboheart/package/threadmanager"
 	"github.com/gorilla/mux"
 	"os"
+	"sync"
 )
 
 const (
