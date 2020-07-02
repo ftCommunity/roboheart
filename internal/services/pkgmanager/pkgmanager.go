@@ -25,6 +25,7 @@ const (
 	PATH_BASE               = "/opt/ftc"
 	PATH_PKG                = PATH_BASE + "/" + "packages"
 	PATH_DATA               = PATH_BASE + "/" + "data"
+	MANIFEST_NAME           = "manifest.json"
 )
 
 type pkgmanager struct {
