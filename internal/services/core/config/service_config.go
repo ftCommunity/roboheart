@@ -1,5 +1,7 @@
 package config
 
+import "strconv"
+
 type ServiceConfig struct {
 	c        *config
 	confname string
@@ -23,6 +25,38 @@ func (sc *ServiceConfig) GetBool(section, option string) (bool, bool) {
 
 func (sc *ServiceConfig) GetBoolDefault(section, option string, def bool) bool {
 	if v, ok := sc.GetBool(section, option); ok {
+		return v
+	} else {
+		return def
+	}
+}
+
+func (sc *ServiceConfig) GetInt(section, option string) (int, bool, error) {
+	if raw, ok := sc.GetLast(section, option); ok {
+		if v, err := strconv.Atoi(raw); err == nil {
+			return v, true, nil
+		} else {
+			return 0, true, err
+		}
+	} else {
+		return 0, false, nil
+	}
+}
+
+func (sc *ServiceConfig) GetIntDefault(section, option string, def int) (int, error) {
+	if v, ok, err := sc.GetInt(section, option); err == nil {
+		if ok {
+			return v, nil
+		} else {
+			return def, nil
+		}
+	} else {
+		return 0, err
+	}
+}
+
+func (sc *ServiceConfig) GetStringDefault(section, option string, def string) string {
+	if v, ok := sc.GetLast(section, option); ok {
 		return v
 	} else {
 		return def
