@@ -8,6 +8,7 @@ import (
 	"github.com/ftCommunity/roboheart/internal/services/core/locale"
 	"github.com/ftCommunity/roboheart/internal/services/core/power"
 	"github.com/ftCommunity/roboheart/internal/services/core/web"
+	"github.com/ftCommunity/roboheart/internal/services/pkgmanager"
 	"github.com/ftCommunity/roboheart/internal/services/releasever"
 	"github.com/ftCommunity/roboheart/internal/services/vncserver"
 )
@@ -22,7 +23,8 @@ var (
 		"power":  power.Service,
 		"web":    web.Service,
 
-		"vncserver": vncserver.Service,
+		"pkgmanager": pkgmanager.Service,
+		"vncserver":  vncserver.Service,
 	}
 
 	buildservices = map[string]bool{
@@ -34,7 +36,8 @@ var (
 		"power":  true,
 		"web":    true,
 
-		"vncserver": true,
+		"pkgmanager": true,
+		"vncserver":  true,
 	}
 )
 
