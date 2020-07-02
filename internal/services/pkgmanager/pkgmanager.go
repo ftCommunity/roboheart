@@ -1,6 +1,7 @@
 package pkgmanager
 
 import (
+	"encoding/json"
 	"errors"
 	"github.com/ftCommunity/roboheart/internal/service"
 	"github.com/ftCommunity/roboheart/internal/services/core/acm"
@@ -11,7 +12,9 @@ import (
 	"github.com/ftCommunity/roboheart/package/servicehelpers"
 	"github.com/ftCommunity/roboheart/package/threadmanager"
 	"github.com/gorilla/mux"
+	"io/ioutil"
 	"os"
+	"path"
 	"sync"
 )
 
@@ -109,6 +112,53 @@ func (p *pkgmanager) SetAdditionalDependencies(services map[string]service.Servi
 
 func (p *pkgmanager) configureWeb() {
 	p.mux = p.web.RegisterServiceAPI(p)
+}
+
+func (p *pkgmanager) loadPackageManifest(pkg, variant string) error {
+	manifestpath := path.Join(PATH_PKG, pkg, variant, MANIFEST_NAME)
+	if _, err := os.Stat(manifestpath); os.IsNotExist(err) {
+		return err
+	}
+	file, err := ioutil.ReadFile("test.json")
+	if err != nil {
+		return err
+	}
+	data := &extendedPackage{}
+	if err = json.Unmarshal([]byte(file), &data); err != nil {
+		return err
+	}
+	if _, ok := p.packages[pkg]; !ok {
+		p.packages[pkg] = make(map[string]*extendedPackage)
+	}
+	p.packages[pkg][variant] = data
+	return nil
+}
+
+func (p *pkgmanager) loadManifests() error {
+	pkgs, err := ioutil.ReadDir(PATH_PKG)
+	if err != nil {
+		return err
+	}
+pkgloop:
+	for _, pd := range pkgs {
+		if !pd.IsDir() {
+			continue pkgloop
+		}
+		pkgname := p.Name()
+		variants, err := ioutil.ReadDir(path.Join(PATH_PKG, pkgname))
+		if err != nil {
+			return err
+		}
+	variantloop:
+		for _, vd := range variants {
+			if !vd.IsDir() {
+				continue variantloop
+			}
+			variantname := vd.Name()
+			p.loadPackageManifest(pkgname, variantname)
+		}
+	}
+	return nil
 }
 
 var Service = new(pkgmanager)
