@@ -143,7 +143,7 @@ func (l *locale) SetLocale(token, locale string) (error, bool) {
 		}
 	}
 	data = append(data, "LC_ALL=\""+locale+"\"")
-	if err := ioutil.WriteFile(LOCALEPATH, []byte(strings.Join(data, "\n")), fileperm.OS_U_RW_G_RW_A_R); err != nil {
+	if err := ioutil.WriteFile(LOCALEPATH, []byte(strings.Join(data, "\n")), fileperm.OS_U_RW_G_RW_O_R); err != nil {
 		return err, false
 	}
 	go l.runCallbacks(locale)
