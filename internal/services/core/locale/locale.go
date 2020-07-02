@@ -55,7 +55,7 @@ func (l *locale) Init(services map[string]service.Service, logger service.Logger
 	if !ok {
 		return errors.New("Type assertion error")
 	}
-	l.acm.RegisterPermission(PERMISSION, map[string]bool{"user": true, "app": false})
+	l.acm.RegisterPermission(PERMISSION, map[string]bool{"user": true, "app": false}, map[string]string{})
 	for _, ln := range LOCALES {
 		if !strings.Contains(ln, ".") {
 			ln = ln + ".UTF-8"

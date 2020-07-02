@@ -3,8 +3,6 @@ package acm
 import (
 	"errors"
 	"time"
-
-	"github.com/thoas/go-funk"
 )
 
 type token struct {
@@ -20,7 +18,7 @@ func (t *token) GetPermission(name string) (bool, error) {
 	if ps, ok := (*t.permissions)[name]; ok {
 		return ps, nil
 	}
-	if funk.Contains(t.acm.permissions, name) {
+	if _, ok := t.acm.permissions[name]; ok {
 		return false, nil
 	}
 	return false, errors.New("Permission not found")

@@ -62,7 +62,7 @@ func (r *relver) Init(services map[string]service.Service, logger service.Logger
 	if !ok {
 		return errors.New("Type assertion error")
 	}
-	r.acm.RegisterPermission(PERMISSION_UPDATE, map[string]bool{"user": true, "app": false})
+	r.acm.RegisterPermission(PERMISSION_UPDATE, map[string]bool{"user": true, "app": false}, map[string]string{})
 	r.gh = github.NewClient(nil)
 	r.tm = threadmanager.NewThreadManager(r.logger, r.error)
 	r.tm.Load("update", r.updateThread)

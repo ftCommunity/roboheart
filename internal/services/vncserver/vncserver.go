@@ -47,7 +47,7 @@ func (v *vncserver) Init(services map[string]service.Service, logger service.Log
 	if !ok {
 		return errors.New("Type assertion error")
 	}
-	v.acm.RegisterPermission(PERMISSION, map[string]bool{"user": true, "app": false})
+	v.acm.RegisterPermission(PERMISSION, map[string]bool{"user": true, "app": false}, map[string]string{})
 	v.config, ok = services["config"].(config.Config)
 	if !ok {
 		return errors.New("Type assertion error")

@@ -8,7 +8,6 @@ import (
 
 	"github.com/ftCommunity/roboheart/internal/service"
 	"github.com/ftCommunity/roboheart/package/threadmanager"
-	"github.com/thoas/go-funk"
 )
 
 var (
@@ -23,24 +22,25 @@ const (
 type acm struct {
 	logger      service.LoggerFunc
 	error       service.ErrorFunc
-	permissions []string
+	permissions map[string]map[string]string
 	defaults    map[string]*map[string]bool
 	tokens      map[string]*token
 	tm          *threadmanager.ThreadManager
 }
 
 type ACM interface {
-	RegisterPermission(name string, defaults map[string]bool) error
+	RegisterPermission(name string, defaults map[string]bool, desc map[string]string) error
 	CreateToken(defaults []string, layers ...map[string]bool) (string, error)
 	UpdateToken(id string, layers ...map[string]bool) error
 	GetToken(id string) (*token, error)
 	CheckTokenPermission(token string, permission string) (error, bool)
+	GetPermissionDescription(name string) (map[string]string, error)
 }
 
 func (a *acm) Init(services map[string]service.Service, logger service.LoggerFunc, e service.ErrorFunc) error {
 	a.logger = logger
 	a.error = e
-	a.permissions = make([]string, 0)
+	a.permissions = make(map[string]map[string]string)
 	a.defaults = make(map[string]*map[string]bool)
 	for _, d := range DEFAULTS {
 		a.addDefault(d)
@@ -83,11 +83,11 @@ func (a *acm) cleanupThread(logger service.LoggerFunc, e service.ErrorFunc, stop
 	}
 }
 
-func (a *acm) RegisterPermission(name string, defaults map[string]bool) error {
-	if funk.ContainsString(a.permissions, name) {
+func (a *acm) RegisterPermission(name string, defaults map[string]bool, desc map[string]string) error {
+	if _, ok := a.permissions[name]; ok {
 		return errors.New("Permission already registered")
 	}
-	a.permissions = append(a.permissions, name)
+	a.permissions[name] = desc
 	if defaults == nil {
 		return nil
 	}
@@ -132,7 +132,7 @@ func (a *acm) UpdateToken(id string, layers ...map[string]bool) error {
 	disabled := map[string]bool{}
 	for _, l := range layers {
 		for pn, ps := range l {
-			if !funk.Contains(a.permissions, pn) {
+			if _, ok := a.permissions[pn]; !ok {
 				return errors.New("Permission not found")
 			}
 			if ps {
@@ -177,6 +177,14 @@ func (a *acm) CheckTokenPermission(token string, permission string) (error, bool
 		return NotPermittedError, true
 	}
 	return nil, false
+}
+
+func (a *acm) GetPermissionDescription(name string) (map[string]string, error) {
+	if desc, ok := a.permissions[name]; ok {
+		return desc, nil
+	} else {
+		return nil, errors.New("Permission not found")
+	}
 }
 
 func (a *acm) createToken() string {
