@@ -9,5 +9,11 @@ type pkg struct {
 
 type dependency struct {
 	packages.Dependency
+	OneOf []dependencyOption `json:"oneof"`
 	satisfied bool
+}
+
+type dependencyOption struct{
+	packages.DependencyOption
+	used bool
 }
