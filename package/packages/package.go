@@ -36,7 +36,7 @@ type Dependency struct {
 	OneOf []DependencyOption `json:"oneof"`
 }
 
-type DependencyOption struct{
+type DependencyOption struct {
 	ID      string             `json:"id"`
 	Version *marshallers.Range `json:"version"`
 }
