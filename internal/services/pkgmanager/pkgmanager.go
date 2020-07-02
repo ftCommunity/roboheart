@@ -14,10 +14,10 @@ import (
 
 const (
 	PERMISSION_BASE         = "pkgmanager"
-	PERMISSION_INSTALL      = PERMISSION_BASE + ".install"
-	PERMISSION_REMOVE       = PERMISSION_BASE + ".remove"
-	PERMISSION_UPDATE       = PERMISSION_BASE + ".update"
-	PERMISSION_GETAVAILABLE = PERMISSION_BASE + ".getavailable"
+	PERMISSION_INSTALL      = PERMISSION_BASE + "." + "install"
+	PERMISSION_REMOVE       = PERMISSION_BASE + "." + "remove"
+	PERMISSION_UPDATE       = PERMISSION_BASE + "." + "update"
+	PERMISSION_GETAVAILABLE = PERMISSION_BASE + "." + "getavailable"
 	CONFIG_SECTION          = ""
 	CONFIG_TYPE             = "pkgmanager"
 )
