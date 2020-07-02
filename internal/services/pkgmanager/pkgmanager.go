@@ -28,15 +28,16 @@ const (
 )
 
 type pkgmanager struct {
-	logger  service.LoggerFunc
-	error   service.ErrorFunc
-	tm      *threadmanager.ThreadManager
-	acm     acm.ACM
-	config  config.Config
-	sconfig *config.ServiceConfig
-	fwver   fwver.FWVer
-	web     web.Web
-	mux     *mux.Router
+	logger   service.LoggerFunc
+	error    service.ErrorFunc
+	tm       *threadmanager.ThreadManager
+	acm      acm.ACM
+	config   config.Config
+	sconfig  *config.ServiceConfig
+	fwver    fwver.FWVer
+	web      web.Web
+	mux      *mux.Router
+	packages map[string]map[string]*pkg
 }
 
 type PkgManager interface {
@@ -72,6 +73,7 @@ func (p *pkgmanager) Init(services map[string]service.Service, logger service.Lo
 	if err := os.MkdirAll(PATH_DATA, fileperm.OS_U_RW_G_RW_O_R); err != nil {
 		return err
 	}
+	p.packages = make(map[string]map[string]*pkg)
 	p.tm = threadmanager.NewThreadManager(p.logger, p.error)
 	return nil
 }
