@@ -31,6 +31,22 @@ func (sc *ServiceConfig) GetBoolDefault(section, option string, def bool) bool {
 	}
 }
 
+func (sc *ServiceConfig) GetIntList(section, option string) ([]int, bool, error) {
+	if raw, ok:=sc.Get(section,option);ok{
+		data :=[]int{}
+		for _,rv:=range raw{
+			if v, err := strconv.Atoi(rv); err == nil {
+				data=append(data,v)
+			} else {
+				return[]int{},ok,err
+			}
+		}
+		return data,ok,nil
+	}else{
+		return []int{},ok,nil
+	}
+}
+
 func (sc *ServiceConfig) GetInt(section, option string) (int, bool, error) {
 	if raw, ok := sc.GetLast(section, option); ok {
 		if v, err := strconv.Atoi(raw); err == nil {
