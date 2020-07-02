@@ -37,7 +37,8 @@ type pkgmanager struct {
 	fwver    fwver.FWVer
 	web      web.Web
 	mux      *mux.Router
-	packages map[string]map[string]*pkg
+	packages map[string]map[string]*extendedPackage
+	treelock sync.Mutex
 }
 
 type PkgManager interface {
@@ -73,7 +74,7 @@ func (p *pkgmanager) Init(services map[string]service.Service, logger service.Lo
 	if err := os.MkdirAll(PATH_DATA, fileperm.OS_U_RW_G_RW_O_R); err != nil {
 		return err
 	}
-	p.packages = make(map[string]map[string]*pkg)
+	p.packages = make(map[string]map[string]*extendedPackage)
 	p.tm = threadmanager.NewThreadManager(p.logger, p.error)
 	return nil
 }

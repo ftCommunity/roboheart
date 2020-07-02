@@ -2,7 +2,7 @@ package pkgmanager
 
 import "github.com/ftCommunity/roboheart/package/packages"
 
-type pkg struct {
+type extendedPackage struct {
 	packages.Package
 	Dependencies map[string]dependency `json:"dependencies"`
 }
