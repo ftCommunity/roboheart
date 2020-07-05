@@ -6,6 +6,7 @@ import (
 	"github.com/ftCommunity/roboheart/internal/service"
 	"github.com/ftCommunity/roboheart/internal/services/core/acm"
 	"github.com/ftCommunity/roboheart/internal/services/core/config"
+	"github.com/ftCommunity/roboheart/internal/services/core/deviceinfo"
 	"github.com/ftCommunity/roboheart/internal/services/core/fwver"
 	"github.com/ftCommunity/roboheart/internal/services/core/web"
 	fileperm "github.com/ftCommunity/roboheart/package/filepermissions"
@@ -33,17 +34,19 @@ const (
 )
 
 type pkgmanager struct {
-	logger   service.LoggerFunc
-	error    service.ErrorFunc
-	tm       *threadmanager.ThreadManager
-	acm      acm.ACM
-	config   config.Config
-	sconfig  *config.ServiceConfig
-	fwver    fwver.FWVer
-	web      web.Web
-	mux      *mux.Router
-	packages map[string]extendedPackage
-	treelock sync.Mutex
+	logger           service.LoggerFunc
+	error            service.ErrorFunc
+	tm               *threadmanager.ThreadManager
+	acm              acm.ACM
+	config           config.Config
+	sconfig          *config.ServiceConfig
+	deviceinfo       deviceinfo.DeviceInfo
+	platform, device string
+	fwver            fwver.FWVer
+	web              web.Web
+	mux              *mux.Router
+	packages         map[string]extendedPackage
+	treelock         sync.Mutex
 }
 
 type PkgManager interface {
@@ -69,6 +72,11 @@ func (p *pkgmanager) Init(services map[string]service.Service, logger service.Lo
 	if err := p.sconfig.AddSection(CONFIG_SECTION, CONFIG_TYPE); err != nil {
 		return err
 	}
+	p.deviceinfo, ok = services["deviceinfo"].(deviceinfo.DeviceInfo)
+	if !ok {
+		return errors.New("Type assertion error")
+	}
+	p.device, p.platform = p.deviceinfo.GetDevice(), p.deviceinfo.GetPlatform()
 	p.fwver, ok = services["fwver"].(fwver.FWVer)
 	if !ok {
 		return errors.New("Type assertion error")
@@ -94,7 +102,7 @@ func (p *pkgmanager) Name() string {
 }
 
 func (p *pkgmanager) Dependencies() ([]string, []string) {
-	return []string{"acm", "config", "fwver"}, []string{"web"}
+	return []string{"acm", "config", "deviceinfo", "fwver"}, []string{"web"}
 }
 
 func (p *pkgmanager) SetAdditionalDependencies(services map[string]service.Service) error {
