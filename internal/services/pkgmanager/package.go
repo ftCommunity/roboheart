@@ -1,6 +1,8 @@
 package pkgmanager
 
-import "github.com/ftCommunity/roboheart/package/packages"
+import (
+	"github.com/ftCommunity/roboheart/package/packages"
+)
 
 type extendedPackage struct {
 	packages.Package
