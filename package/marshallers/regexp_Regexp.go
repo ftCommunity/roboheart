@@ -2,6 +2,7 @@ package marshallers
 
 import (
 	"regexp"
+	"strings"
 )
 
 type Regexp struct {
@@ -9,11 +10,11 @@ type Regexp struct {
 }
 
 func (r *Regexp) MarshalJSON() ([]byte, error) {
-	return MakeByteString(r.String()), nil
+	return MakeByteString(strings.TrimSuffix(strings.TrimPrefix(r.String(), "^"), "$")), nil
 }
 
 func (r *Regexp) UnmarshalJSON(data []byte) error {
 	var err error
-	r.Regexp, err = regexp.Compile(extractString(data))
+	r.Regexp, err = regexp.Compile("^" + extractString(data) + "$")
 	return err
 }
