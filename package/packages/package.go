@@ -1,6 +1,7 @@
 package packages
 
 import (
+	"github.com/blang/semver"
 	"github.com/ftCommunity/roboheart/package/marshallers"
 )
 
@@ -30,6 +31,31 @@ type Variant struct {
 	Url           *string                        `json:"url"`
 	Management    *string                        `json:"management"`
 	Frontend      *string                        `json:"frontend"`
+}
+
+func (v Variant) checkPlatform(platform string) bool {
+	if v.Platform == nil {
+		return true
+	}
+	return v.Platform.MatchString(platform)
+}
+
+func (v Variant) checkDevice(device string) bool {
+	if v.Device == nil {
+		return true
+	}
+	return v.Device.MatchString(device)
+}
+
+func (v Variant) checkFirmware(firmware semver.Version) bool {
+	if v.Firmware == nil {
+		return true
+	}
+	return v.Firmware.Range(firmware)
+}
+
+func (v Variant) Check(platform, device string, firmware semver.Version) bool {
+	return v.checkPlatform(platform) && v.checkDevice(device) && v.checkFirmware(firmware)
 }
 
 type Language struct {
