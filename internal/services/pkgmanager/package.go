@@ -6,7 +6,13 @@ import (
 
 type extendedPackage struct {
 	packages.Package
+	Variants map[string]extendedVariant
+}
+
+type extendedVariant struct {
+	packages.Variant
 	Dependencies map[string]dependency `json:"dependencies"`
+	done         bool
 }
 
 type dependency struct {

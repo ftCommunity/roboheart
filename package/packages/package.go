@@ -5,6 +5,11 @@ import (
 )
 
 type Package struct {
+	Id       string
+	Variants map[string]Variant
+}
+
+type Variant struct {
 	PackageId     string                         `json:"pkgid"`
 	VariantId     string                         `json:"variantid"`
 	AuthorId      string                         `json:"authorid"`
