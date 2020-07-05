@@ -3,6 +3,7 @@ package pkgmanager
 import (
 	"encoding/json"
 	"errors"
+	"github.com/blang/semver"
 	"github.com/ftCommunity/roboheart/internal/service"
 	"github.com/ftCommunity/roboheart/internal/services/core/acm"
 	"github.com/ftCommunity/roboheart/internal/services/core/config"
@@ -43,6 +44,7 @@ type pkgmanager struct {
 	deviceinfo       deviceinfo.DeviceInfo
 	platform, device string
 	fwver            fwver.FWVer
+	firmware         semver.Version
 	web              web.Web
 	mux              *mux.Router
 	packages         map[string]extendedPackage
@@ -81,6 +83,7 @@ func (p *pkgmanager) Init(services map[string]service.Service, logger service.Lo
 	if !ok {
 		return errors.New("Type assertion error")
 	}
+	p.firmware = p.fwver.Get()
 	if err := os.MkdirAll(PATH_PKG, fileperm.OS_U_RW_G_RW_O_R); err != nil {
 		return err
 	}
