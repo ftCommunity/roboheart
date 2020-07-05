@@ -92,6 +92,7 @@ func (p *pkgmanager) Init(services map[string]service.Service, logger service.Lo
 	}
 	p.packages = make(map[string]extendedPackage)
 	p.tm = threadmanager.NewThreadManager(p.logger, p.error)
+	go p.reloadAll()
 	return nil
 }
 
@@ -171,6 +172,10 @@ pkgloop:
 			p.loadPackageManifest(pkgname, variantname)
 		}
 	}
+	return nil
+}
+
+func (p *pkgmanager) reloadAll() error {
 	return nil
 }
 
