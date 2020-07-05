@@ -4,6 +4,7 @@ import (
 	"github.com/ftCommunity/roboheart/internal/service"
 	"github.com/ftCommunity/roboheart/internal/services/core/acm"
 	"github.com/ftCommunity/roboheart/internal/services/core/config"
+	"github.com/ftCommunity/roboheart/internal/services/core/deviceinfo"
 	"github.com/ftCommunity/roboheart/internal/services/core/fwver"
 	"github.com/ftCommunity/roboheart/internal/services/core/locale"
 	"github.com/ftCommunity/roboheart/internal/services/core/power"
@@ -15,26 +16,28 @@ import (
 
 var (
 	services = map[string]service.Service{
-		"acm":    acm.Service,
-		"config": config.Service,
-		"fwver":  fwver.Service,
-		"locale": locale.Service,
-		"relver": relver.Service,
-		"power":  power.Service,
-		"web":    web.Service,
+		"acm":        acm.Service,
+		"config":     config.Service,
+		"deviceinfo": deviceinfo.Service,
+		"fwver":      fwver.Service,
+		"locale":     locale.Service,
+		"relver":     relver.Service,
+		"power":      power.Service,
+		"web":        web.Service,
 
 		"pkgmanager": pkgmanager.Service,
 		"vncserver":  vncserver.Service,
 	}
 
 	buildservices = map[string]bool{
-		"acm":    true,
-		"config": true,
-		"fwver":  true,
-		"locale": true,
-		"relver": true,
-		"power":  true,
-		"web":    true,
+		"acm":        true,
+		"config":     true,
+		"deviceinfo": true,
+		"fwver":      true,
+		"locale":     true,
+		"relver":     true,
+		"power":      true,
+		"web":        true,
 
 		"pkgmanager": true,
 		"vncserver":  true,
