@@ -68,6 +68,16 @@ type Dependency struct {
 }
 
 type DependencyOption struct {
+	Wants   *DependencyOptionWants   `json:"wants"`
+	Package *DependencyOptionPackage `json:"package"`
+}
+
+type DependencyOptionWants struct {
+	Wants string             `json:"wants"`
+	Range *marshallers.Range `json:"version"`
+}
+
+type DependencyOptionPackage struct {
 	ID      string             `json:"id"`
 	Version *marshallers.Range `json:"version"`
 }
