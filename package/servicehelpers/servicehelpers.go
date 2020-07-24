@@ -29,3 +29,15 @@ func CheckAdditionalDependencies(ds service.DependingService, svcs map[string]se
 	_, req := ds.Dependencies()
 	return checkDependencies(req, svcs)
 }
+
+type ServiceList map[string]service.Service
+type ServiceInitializers []func(ServiceList) error
+
+func InitializeDependencies(sl ServiceList, dcl ServiceInitializers) error {
+	for _, dc := range dcl {
+		if err := dc(sl); dc != nil {
+			return err
+		}
+	}
+	return nil
+}
