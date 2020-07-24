@@ -10,15 +10,6 @@ import (
 	"github.com/ftCommunity/roboheart/package/threadmanager"
 )
 
-var (
-	DEFAULTS           = []string{"root", "user", "app"}
-	TokenNotFoundError = errors.New("Token not found")
-)
-
-const (
-	tokenRefreshLifetime = 15 * time.Minute
-)
-
 type acm struct {
 	logger      service.LoggerFunc
 	error       service.ErrorFunc
@@ -26,15 +17,6 @@ type acm struct {
 	defaults    map[string]*map[string]bool
 	tokens      map[string]*token
 	tm          *threadmanager.ThreadManager
-}
-
-type ACM interface {
-	RegisterPermission(name string, defaults map[string]bool, desc map[string]string) error
-	CreateToken(defaults []string, layers ...map[string]bool) (string, error)
-	UpdateToken(id string, layers ...map[string]bool) error
-	GetToken(id string) (*token, error)
-	CheckTokenPermission(token string, permission string) (error, bool)
-	GetPermissionDescription(name string) (map[string]string, error)
 }
 
 func (a *acm) Init(services map[string]service.Service, logger service.LoggerFunc, e service.ErrorFunc) error {
@@ -206,5 +188,3 @@ func (a *acm) addDefault(d string) {
 	a.defaults[d] = &map[string]bool{}
 
 }
-
-var Service = new(acm)
