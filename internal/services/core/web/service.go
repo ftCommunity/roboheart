@@ -20,10 +20,6 @@ type web struct {
 	srvwg       sync.WaitGroup
 }
 
-type Web interface {
-	RegisterServiceAPI(service.Service) *mux.Router
-}
-
 func (w *web) Init(services map[string]service.Service, logger service.LoggerFunc, e service.ErrorFunc) error {
 	w.logger = logger
 	w.error = e
@@ -72,5 +68,3 @@ func (w *web) RegisterServiceAPI(s service.Service) *mux.Router {
 func getSubMux(m *mux.Router, p string) *mux.Router {
 	return m.PathPrefix(p).Subrouter()
 }
-
-var Service = new(web)
