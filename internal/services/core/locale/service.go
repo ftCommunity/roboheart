@@ -2,28 +2,18 @@ package locale
 
 import (
 	"errors"
+	"io/ioutil"
+	"strings"
+	"sync"
+
 	"github.com/ftCommunity/roboheart/internal/services/core/acm"
 	"github.com/ftCommunity/roboheart/internal/services/core/web"
-	"github.com/ftCommunity/roboheart/package/api"
 	fileperm "github.com/ftCommunity/roboheart/package/filepermissions"
 	"github.com/ftCommunity/roboheart/package/servicehelpers"
 	"github.com/gorilla/mux"
 	"github.com/thoas/go-funk"
-	"io/ioutil"
-	"net/http"
-	"strings"
-	"sync"
 
 	"github.com/ftCommunity/roboheart/internal/service"
-)
-
-const (
-	PERMISSION = "locale"
-	LOCALEPATH = "/etc/locale"
-)
-
-var (
-	LOCALES = []string{"en_US", "de_DE", "fr_FR", "nl_NL"}
 )
 
 type locale struct {
@@ -37,25 +27,15 @@ type locale struct {
 	acm       acm.ACM
 }
 
-type Locale interface {
-	RegisterOnLocaleChangeCallback(func(locale string))
-	GetLocale() (string, error)
-	SetLocale(token, locale string) (error, bool)
-	GetAllowedLocales() []string
-}
-
 func (l *locale) Init(services map[string]service.Service, logger service.LoggerFunc, e service.ErrorFunc) error {
 	l.logger = logger
 	l.error = e
 	if err := servicehelpers.CheckMainDependencies(l, services); err != nil {
 		return err
 	}
-	var ok bool
-	l.acm, ok = services["acm"].(acm.ACM)
-	if !ok {
-		return errors.New("Type assertion error")
+	if err := servicehelpers.InitializeDependencies(services, servicehelpers.ServiceInitializers{l.initSvcAcm}); err != nil {
+		return err
 	}
-	l.acm.RegisterPermission(PERMISSION, map[string]bool{"user": true, "app": false}, map[string]string{})
 	for _, ln := range LOCALES {
 		if !strings.Contains(ln, ".") {
 			ln = ln + ".UTF-8"
@@ -77,45 +57,10 @@ func (l *locale) SetAdditionalDependencies(services map[string]service.Service) 
 	if err := servicehelpers.CheckAdditionalDependencies(l, services); err != nil {
 		return err
 	}
-	var ok bool
-	l.web, ok = services["web"].(web.Web)
-	if !ok {
-		return errors.New("Type assertion error")
+	if err := servicehelpers.InitializeDependencies(services, servicehelpers.ServiceInitializers{l.initSvcWeb}); err != nil {
+		return err
 	}
-	l.configureWeb()
 	return nil
-}
-
-func (l *locale) configureWeb() {
-	l.mux = l.web.RegisterServiceAPI(l)
-	l.mux.HandleFunc("/locale", func(w http.ResponseWriter, r *http.Request) {
-		if locale, err := l.GetLocale(); err != nil {
-			api.ErrorResponseWriter(w, 500, err)
-		} else {
-			api.ResponseWriter(w, locale)
-		}
-	}).Methods("GET")
-	l.mux.HandleFunc("/locale", func(w http.ResponseWriter, r *http.Request) {
-		data := &struct {
-			api.TokenRequest
-			Locale string `json:"locale"`
-		}{}
-		if !api.RequestLoader(r, w, data) {
-			return
-		}
-		if err, uae := l.SetLocale(data.Token, data.Locale); err != nil {
-			code := 500
-			if uae {
-				code = 403
-			}
-			api.ErrorResponseWriter(w, code, err)
-		} else {
-			api.ResponseWriter(w, nil)
-		}
-	}).Methods("POST")
-	l.mux.HandleFunc("/allowed", func(w http.ResponseWriter, r *http.Request) {
-		api.ResponseWriter(w, l.GetAllowedLocales())
-	}).Methods("GET")
 }
 
 func (l *locale) RegisterOnLocaleChangeCallback(cb func(locale string)) {
@@ -180,5 +125,3 @@ func (l *locale) runCallbacks(ln string) {
 		go c(ln)
 	}
 }
-
-var Service = new(locale)
