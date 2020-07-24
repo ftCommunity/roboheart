@@ -1,15 +1,9 @@
 package config
 
 import (
-	"time"
-
 	"github.com/digineo/go-uci"
 	"github.com/ftCommunity/roboheart/internal/service"
 	"github.com/ftCommunity/roboheart/package/threadmanager"
-)
-
-const (
-	configPATH = "/etc/config"
 )
 
 type config struct {
@@ -17,10 +11,6 @@ type config struct {
 	error  service.ErrorFunc
 	tree   uci.Tree
 	tm     *threadmanager.ThreadManager
-}
-
-type Config interface {
-	GetServiceConfig(s service.Service) *ServiceConfig
 }
 
 func (c *config) Init(_ map[string]service.Service, logger service.LoggerFunc, e service.ErrorFunc) error {
@@ -47,26 +37,6 @@ func (c *config) commit() error {
 	return c.tree.Commit()
 }
 
-func (c *config) configCommitThread(logger service.LoggerFunc, e service.ErrorFunc, stop, stopped chan interface{}) {
-	for {
-		select {
-		case <-stop:
-			{
-				stopped <- struct{}{}
-				return
-			}
-		case <-time.After(5 * time.Second):
-			{
-				if err := c.commit(); err != nil {
-					e(err)
-				}
-			}
-		}
-	}
-}
-
 func (c *config) GetServiceConfig(s service.Service) *ServiceConfig {
 	return newServiceConfig(c, s.Name())
 }
-
-var Service = new(config)
