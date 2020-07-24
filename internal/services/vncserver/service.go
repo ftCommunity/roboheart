@@ -1,23 +1,13 @@
 package vncserver
 
 import (
-	"errors"
 	"github.com/ftCommunity/roboheart/internal/service"
 	"github.com/ftCommunity/roboheart/internal/services/core/acm"
 	"github.com/ftCommunity/roboheart/internal/services/core/config"
 	"github.com/ftCommunity/roboheart/internal/services/core/web"
-	"github.com/ftCommunity/roboheart/package/api"
 	"github.com/ftCommunity/roboheart/package/procrunner"
 	"github.com/ftCommunity/roboheart/package/servicehelpers"
 	"github.com/gorilla/mux"
-	"net/http"
-)
-
-const (
-	PERMISSION              = "vncserver"
-	CONFIG_SECTION          = ""
-	CONFIG_TYPE             = "vncserver"
-	CONFIG_AUTOSTART_OPTION = "autostart"
 )
 
 type vncserver struct {
@@ -32,28 +22,10 @@ type vncserver struct {
 	state   bool
 }
 
-type VNCServer interface {
-	Start(token string) (error, bool)
-	Stop(token string) (error, bool)
-	GetAutostart() bool
-	SetAutostart(token string, autostart bool) (error, bool)
-}
-
 func (v *vncserver) Init(services map[string]service.Service, logger service.LoggerFunc, e service.ErrorFunc) error {
 	v.logger = logger
 	v.error = e
-	var ok bool
-	v.acm, ok = services["acm"].(acm.ACM)
-	if !ok {
-		return errors.New("Type assertion error")
-	}
-	v.acm.RegisterPermission(PERMISSION, map[string]bool{"user": true, "app": false}, map[string]string{})
-	v.config, ok = services["config"].(config.Config)
-	if !ok {
-		return errors.New("Type assertion error")
-	}
-	v.sconfig = v.config.GetServiceConfig(v)
-	if err := v.sconfig.AddSection(CONFIG_SECTION, CONFIG_TYPE); err != nil {
+	if err := servicehelpers.InitializeDependencies(services, servicehelpers.ServiceInitializers{v.initSvcAcm, v.initSvcConfig}); err != nil {
 		return err
 	}
 	v.proc = procrunner.NewProcRunner("framebuffer-vncserver", "-f", "/dev/fb0", "-t", "/dev/input/event0")
@@ -73,51 +45,10 @@ func (v *vncserver) SetAdditionalDependencies(services map[string]service.Servic
 	if err := servicehelpers.CheckAdditionalDependencies(v, services); err != nil {
 		return err
 	}
-	var ok bool
-	v.web, ok = services["web"].(web.Web)
-	if !ok {
-		return errors.New("Type assertion error")
+	if err := servicehelpers.InitializeDependencies(services, servicehelpers.ServiceInitializers{v.initSvcWeb}); err != nil {
+		return err
 	}
-	v.configureWeb()
 	return nil
-}
-
-func (v *vncserver) configureWeb() {
-	v.mux = v.web.RegisterServiceAPI(v)
-	v.mux.HandleFunc("/state", func(w http.ResponseWriter, _ *http.Request) {
-		api.ResponseWriter(w, state{v.state})
-	}).Methods("GET")
-	v.mux.HandleFunc("/state", func(w http.ResponseWriter, r *http.Request) {
-		data := &stateSet{}
-		if !api.RequestLoader(r, w, data) {
-			return
-		}
-		var f func(string) (error, bool)
-		if data.State {
-			f = v.Start
-		} else {
-			f = v.Stop
-		}
-		if err, _ := f(data.Token); err != nil {
-			api.ErrorResponseWriter(w, 500, err)
-		} else {
-			api.ResponseWriter(w, nil)
-		}
-	}).Methods("POST")
-	v.mux.HandleFunc("/autostart", func(w http.ResponseWriter, _ *http.Request) {
-		api.ResponseWriter(w, autostartState{v.GetAutostart()})
-	}).Methods("GET")
-	v.mux.HandleFunc("/autostart", func(w http.ResponseWriter, r *http.Request) {
-		data := &autostartSet{}
-		if !api.RequestLoader(r, w, data) {
-			return
-		}
-		if err, _ := v.SetAutostart(data.Token, data.Autostart); err != nil {
-			api.ErrorResponseWriter(w, 500, err)
-		} else {
-			api.ResponseWriter(w, nil)
-		}
-	}).Methods("POST")
 }
 
 func (v *vncserver) onCrash(c int) {
@@ -161,5 +92,3 @@ func (v *vncserver) start() error {
 	}
 	return nil
 }
-
-var Service = new(vncserver)
