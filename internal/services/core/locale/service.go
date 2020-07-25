@@ -2,7 +2,8 @@ package locale
 
 import (
 	"errors"
-	"io/ioutil"
+	"github.com/ftCommunity/roboheart/internal/services/core/filesystem"
+	"github.com/spf13/afero"
 	"strings"
 	"sync"
 
@@ -25,6 +26,7 @@ type locale struct {
 	web       web.Web
 	mux       *mux.Router
 	acm       acm.ACM
+	fs        filesystem.FileSystem
 }
 
 func (l *locale) Init(services map[string]service.Service, logger service.LoggerFunc, e service.ErrorFunc) error {
@@ -33,7 +35,7 @@ func (l *locale) Init(services map[string]service.Service, logger service.Logger
 	if err := servicehelpers.CheckMainDependencies(l, services); err != nil {
 		return err
 	}
-	if err := servicehelpers.InitializeDependencies(services, servicehelpers.ServiceInitializers{l.initSvcAcm}); err != nil {
+	if err := servicehelpers.InitializeDependencies(services, servicehelpers.ServiceInitializers{l.initSvcAcm, l.initSvcFileSystem}); err != nil {
 		return err
 	}
 	for _, ln := range LOCALES {
@@ -50,8 +52,10 @@ func (l *locale) Stop() error {
 	return nil
 }
 
-func (l *locale) Name() string                       { return "locale" }
-func (l *locale) Dependencies() ([]string, []string) { return []string{"acm"}, []string{"web"} }
+func (l *locale) Name() string { return "locale" }
+func (l *locale) Dependencies() ([]string, []string) {
+	return []string{"acm", "filesystem"}, []string{"web"}
+}
 
 func (l *locale) SetAdditionalDependencies(services map[string]service.Service) error {
 	if err := servicehelpers.CheckAdditionalDependencies(l, services); err != nil {
@@ -76,7 +80,10 @@ func (l *locale) SetLocale(token, locale string) (error, bool) {
 	}
 	l.lock.Lock()
 	defer l.lock.Unlock()
-	raw, err := ioutil.ReadFile(LOCALEPATH)
+	raw, err := afero.ReadFile(l.fs, LOCALEPATH)
+	if err != nil {
+		return err, false
+	}
 	if err != nil {
 		return err, false
 	}
@@ -88,7 +95,7 @@ func (l *locale) SetLocale(token, locale string) (error, bool) {
 		}
 	}
 	data = append(data, "LC_ALL=\""+locale+"\"")
-	if err := ioutil.WriteFile(LOCALEPATH, []byte(strings.Join(data, "\n")), fileperm.OS_U_RW_G_RW_O_R); err != nil {
+	if err := afero.WriteFile(l.fs, LOCALEPATH, []byte(strings.Join(data, "\n")), fileperm.OS_U_RW_G_RW_O_R); err != nil {
 		return err, false
 	}
 	go l.runCallbacks(locale)
@@ -98,7 +105,7 @@ func (l *locale) SetLocale(token, locale string) (error, bool) {
 func (l *locale) GetLocale() (string, error) {
 	l.lock.Lock()
 	defer l.lock.Unlock()
-	raw, err := ioutil.ReadFile(LOCALEPATH)
+	raw, err := afero.ReadFile(l.fs, LOCALEPATH)
 	if err != nil {
 		return "", err
 	}
