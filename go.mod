@@ -9,5 +9,7 @@ require (
 	github.com/google/uuid v1.1.1
 	github.com/gorilla/mux v1.7.4
 	github.com/spf13/afero v1.3.2
-	github.com/thoas/go-funk v0.6.0
+	github.com/thoas/go-funk v0.7.0
+	golang.org/x/crypto v0.0.0-20200709230013-948cd5f35899 // indirect
+	golang.org/x/text v0.3.3 // indirect
 )
