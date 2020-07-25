@@ -129,9 +129,9 @@ func (sm *ServiceManager) genServiceError(sn string) service.ErrorFunc {
 }
 
 //initServices starts a list of services
-//caution: all services must depend on each other or dependcies must be started already
+//caution: all services must depend on each other or dependencies must be started already
 func (sm *ServiceManager) initServices(sl []string) error {
-	//save how many are inititialized
+	//save how many are initialized
 	init := 0
 	for len(sl) > init {
 		//iterate over services
@@ -154,7 +154,7 @@ func (sm *ServiceManager) initServices(sl []string) error {
 				}
 			}
 			if !dm {
-				//inititialize if there are no missing dependencies
+				//initialize if there are no missing dependencies
 				err := ss.service.base.Init(
 					sm.getServiceDependencies(sn),
 					ss.logger,
@@ -234,7 +234,7 @@ func (sm *ServiceManager) checkCircularDependencies() error {
 func (sm *ServiceManager) serviceCheckCircularDependencies(start string, check service.DependingService, checked *[]string) error {
 	//start: start service name
 	//check: current service
-	//checked: already checked services sincde start
+	//checked: already checked services since start
 
 	//get dependencies
 	dl, adl := check.Dependencies()
@@ -285,7 +285,7 @@ func (sm *ServiceManager) checkDependencyNames() error {
 }
 
 func NewServiceManager() (*ServiceManager, error) {
-	//create ServiceManager amd inititialize it
+	//create ServiceManager amd initialize it
 	sm := new(ServiceManager)
 	sm.services = make(map[string]*ServiceState)
 	//add services
