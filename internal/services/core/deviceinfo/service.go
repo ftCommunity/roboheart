@@ -10,6 +10,7 @@ import (
 type deviceinfo struct {
 	web web.Web
 	mux *mux.Router
+	platform, device string
 }
 
 func (d *deviceinfo) Init(map[string]service.Service, service.LoggerFunc, service.ErrorFunc) error {
@@ -28,5 +29,5 @@ func (d *deviceinfo) SetAdditionalDependencies(services map[string]service.Servi
 	return nil
 }
 
-func (d *deviceinfo) GetPlatform() string { return "arm" }
-func (d *deviceinfo) GetDevice() string   { return "ft-txt" }
+func (d *deviceinfo) GetPlatform() string { return d.platform }
+func (d *deviceinfo) GetDevice() string   { return d.device }
