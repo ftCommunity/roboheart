@@ -8,5 +8,6 @@ require (
 	github.com/google/go-github/v31 v31.0.0
 	github.com/google/uuid v1.1.1
 	github.com/gorilla/mux v1.7.4
+	github.com/spf13/afero v1.3.2
 	github.com/thoas/go-funk v0.6.0
 )

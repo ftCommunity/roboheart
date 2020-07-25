@@ -5,6 +5,7 @@ import (
 	"github.com/ftCommunity/roboheart/internal/services/core/acm"
 	"github.com/ftCommunity/roboheart/internal/services/core/config"
 	"github.com/ftCommunity/roboheart/internal/services/core/deviceinfo"
+	"github.com/ftCommunity/roboheart/internal/services/core/filesystem"
 	"github.com/ftCommunity/roboheart/internal/services/core/fwver"
 	"github.com/ftCommunity/roboheart/internal/services/core/locale"
 	"github.com/ftCommunity/roboheart/internal/services/core/power"
@@ -19,6 +20,7 @@ var (
 		"acm":        acm.Service,
 		"config":     config.Service,
 		"deviceinfo": deviceinfo.Service,
+		"filesystem": filesystem.Service,
 		"fwver":      fwver.Service,
 		"locale":     locale.Service,
 		"relver":     relver.Service,
@@ -33,6 +35,7 @@ var (
 		"acm":        true,
 		"config":     true,
 		"deviceinfo": true,
+		"filesystem": true,
 		"fwver":      true,
 		"locale":     true,
 		"relver":     true,
