@@ -1,7 +1,10 @@
 package filesystem
 
-import "github.com/spf13/afero"
+import (
+	"github.com/ftCommunity/roboheart/internal/service"
+	"github.com/spf13/afero"
+)
 
-func NewMock() FileSystem {
-	return afero.NewMemMapFs()
+func NewMock(service.LoggerFunc, service.ErrorFunc) (FileSystem, error) {
+	return afero.NewMemMapFs(), nil
 }
