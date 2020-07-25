@@ -12,11 +12,12 @@ import (
 
 type ServiceState struct {
 	service struct {
-		base         service.Service
-		stoppable    service.StoppableService
-		depending    service.DependingService
-		adddepending service.AddDependingService
-		addunset     service.AddDependingUnsetService
+		base          service.Service
+		stoppable     service.StoppableService
+		emerstoppable service.EmergencyStoppableService
+		depending     service.DependingService
+		adddepending  service.AddDependingService
+		addunset      service.AddDependingUnsetService
 	}
 	running bool
 	addset  bool //Additional dependencies set
@@ -99,7 +100,9 @@ func (sm *ServiceManager) Stop() error {
 			if !deprunning {
 				//stop it
 				if sts := ss.service.stoppable; sts != nil {
-					sts.Stop()
+					if err := sts.Stop(); err != nil {
+						ss.error(err)
+					}
 					//log that
 					ss.logger("Stopped")
 				} else {
@@ -116,6 +119,20 @@ func (sm *ServiceManager) Stop() error {
 	}
 }
 
+func (sm *ServiceManager) emergencyStop() {
+	var wg sync.WaitGroup
+	for _, ss := range sm.services {
+		if es := ss.service.emerstoppable; es != nil && ss.running {
+			wg.Add(1)
+			go func() {
+				es.EmergencyStop()
+				wg.Done()
+			}()
+		}
+	}
+	wg.Wait()
+}
+
 func (sm *ServiceManager) genServiceLogger(sn string) service.LoggerFunc {
 	return func(v ...interface{}) {
 		log.Println(append([]interface{}{"Service:", sn + ":"}, v...)...)
@@ -124,7 +141,10 @@ func (sm *ServiceManager) genServiceLogger(sn string) service.LoggerFunc {
 
 func (sm *ServiceManager) genServiceError(sn string) service.ErrorFunc {
 	return func(v ...interface{}) {
-		log.Fatal(append([]interface{}{"Service error: ", sn + ": "}, v...)...)
+		log.Println(append([]interface{}{"Service error: ", sn + ": "}, v...)...)
+		log.Println("Emergency stop for all services")
+		sm.emergencyStop()
+		log.Fatal("Stopped after previous error in service " + sn)
 	}
 }
 
@@ -181,6 +201,9 @@ func (sm *ServiceManager) addService(s service.Service) {
 	ss.service.base = s
 	if sts, ok := s.(service.StoppableService); ok {
 		ss.service.stoppable = sts
+	}
+	if es, ok := s.(service.EmergencyStoppableService); ok {
+		ss.service.emerstoppable = es
 	}
 	if ds, ok := s.(service.DependingService); ok {
 		ss.service.depending = ds

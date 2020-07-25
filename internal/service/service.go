@@ -10,6 +10,11 @@ type StoppableService interface {
 	Stop() error
 }
 
+type EmergencyStoppableService interface {
+	StoppableService
+	EmergencyStop()
+}
+
 type DependingService interface {
 	Service
 	Dependencies() ([]string, []string)
