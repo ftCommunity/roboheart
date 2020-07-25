@@ -6,12 +6,7 @@ import (
 )
 
 func ReadToString(fs afero.Fs, path string) (string, error) {
-	file, err := fs.Open(path)
-	if err != nil {
-		return "", err
-	}
-	raw := []byte{}
-	_, err = file.Read(raw)
+	raw, err := afero.ReadFile(fs, path)
 	if err != nil {
 		return "", err
 	}
