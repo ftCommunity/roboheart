@@ -3,7 +3,6 @@ package relver
 import (
 	"context"
 	"errors"
-	"net/http"
 	"strings"
 	"sync"
 	"time"
@@ -12,16 +11,10 @@ import (
 	"github.com/ftCommunity/roboheart/internal/service"
 	"github.com/ftCommunity/roboheart/internal/services/core/acm"
 	"github.com/ftCommunity/roboheart/internal/services/core/web"
-	"github.com/ftCommunity/roboheart/package/api"
 	"github.com/ftCommunity/roboheart/package/servicehelpers"
 	"github.com/ftCommunity/roboheart/package/threadmanager"
 	"github.com/google/go-github/v31/github"
 	"github.com/gorilla/mux"
-)
-
-const (
-	PERMISSION_BASE   = "relver"
-	PERMISSION_UPDATE = PERMISSION_BASE + "." + "update"
 )
 
 type relver struct {
@@ -38,31 +31,15 @@ type relver struct {
 	mux                 *mux.Router
 }
 
-type ReleaseVersion interface {
-	Update(token string) (error, bool)
-	GetRelease() (Release, error)
-	GetPreRelease() (Release, error)
-	GetReleases() []Release
-}
-
-type Release struct {
-	Version  semver.Version `json:"version"`
-	Download string         `json:"filename"`
-	Size     int            `json:"size"`
-}
-
 func (r *relver) Init(services map[string]service.Service, logger service.LoggerFunc, e service.ErrorFunc) error {
 	r.logger = logger
 	r.error = e
 	if err := servicehelpers.CheckMainDependencies(r, services); err != nil {
 		return err
 	}
-	var ok bool
-	r.acm, ok = services["acm"].(acm.ACM)
-	if !ok {
-		return errors.New("Type assertion error")
+	if err := servicehelpers.InitializeDependencies(services, servicehelpers.ServiceInitializers{r.initSvcAcm}); err != nil {
+		return err
 	}
-	r.acm.RegisterPermission(PERMISSION_UPDATE, map[string]bool{"user": true, "app": false}, map[string]string{})
 	r.gh = github.NewClient(nil)
 	r.tm = threadmanager.NewThreadManager(r.logger, r.error)
 	r.tm.Load("update", r.updateThread)
@@ -82,61 +59,10 @@ func (r *relver) SetAdditionalDependencies(services map[string]service.Service) 
 	if err := servicehelpers.CheckAdditionalDependencies(r, services); err != nil {
 		return err
 	}
-	var ok bool
-	r.web, ok = services["web"].(web.Web)
-	if !ok {
-		return errors.New("Type assertion error")
+	if err := servicehelpers.InitializeDependencies(services, servicehelpers.ServiceInitializers{r.initSvcWeb}); err != nil {
+		return err
 	}
-	r.configureWeb()
 	return nil
-}
-
-func (r *relver) configureWeb() {
-	r.mux = r.web.RegisterServiceAPI(r)
-	r.mux.HandleFunc("/release", func(w http.ResponseWriter, _ *http.Request) {
-		defer r.lock.Unlock()
-		r.lock.Lock()
-		if r.release != nil {
-			api.ResponseWriter(w, r.release)
-		} else {
-			api.ErrorResponseWriter(w, 503, errors.New("Version information not available"))
-		}
-	})
-	r.mux.HandleFunc("/prerelease", func(w http.ResponseWriter, _ *http.Request) {
-		defer r.lock.Unlock()
-		r.lock.Lock()
-		if r.prerelease != nil {
-			api.ResponseWriter(w, r.prerelease)
-		} else {
-			api.ErrorResponseWriter(w, 503, errors.New("Version information not available"))
-		}
-	})
-	r.mux.HandleFunc("/releases", func(w http.ResponseWriter, _ *http.Request) {
-		defer r.lock.Unlock()
-		r.lock.Lock()
-		api.ResponseWriter(w, r.releases)
-	})
-}
-
-func (r *relver) updateThread(logger service.LoggerFunc, e service.ErrorFunc, stop, stopped chan interface{}) {
-	if err := r.getReleaseData(); err != nil {
-		logger(err)
-	}
-	for {
-		select {
-		case <-stop:
-			{
-				stopped <- struct{}{}
-				return
-			}
-		case <-time.After(15 * time.Minute):
-			{
-				if err := r.getReleaseData(); err != nil {
-					logger(err)
-				}
-			}
-		}
-	}
 }
 
 func (r *relver) getReleaseData() error {
@@ -224,5 +150,3 @@ func getAssetURL(rel *github.RepositoryRelease) (string, int, error) {
 	}
 	return "", 0, errors.New("Asset not found")
 }
-
-var Service = new(relver)
