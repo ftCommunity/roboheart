@@ -5,6 +5,7 @@ go 1.14
 replace github.com/digineo/go-uci => github.com/ftCommunity/go-uci v0.0.0-20200725220005-3826098d8ac7
 
 require (
+	github.com/akamensky/argparse v1.2.1
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/digineo/go-uci v0.0.0-20190912114941-85b723d68838
 	github.com/google/go-github/v31 v31.0.0
