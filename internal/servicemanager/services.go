@@ -15,44 +15,16 @@ import (
 	"github.com/ftCommunity/roboheart/internal/services/vncserver"
 )
 
-var (
-	services = map[string]service.Service{
-		"acm":        acm.Service,
-		"config":     config.Service,
-		"deviceinfo": deviceinfo.Service,
-		"filesystem": filesystem.Service,
-		"fwver":      fwver.Service,
-		"locale":     locale.Service,
-		"relver":     relver.Service,
-		"power":      power.Service,
-		"web":        web.Service,
-
-		"pkgmanager": pkgmanager.Service,
-		"vncserver":  vncserver.Service,
-	}
-
-	buildservices = map[string]bool{
-		"acm":        true,
-		"config":     true,
-		"deviceinfo": true,
-		"filesystem": true,
-		"fwver":      true,
-		"locale":     true,
-		"relver":     true,
-		"power":      true,
-		"web":        true,
-
-		"pkgmanager": true,
-		"vncserver":  true,
-	}
-)
-
-func getServices() []service.Service {
-	sl := []service.Service{}
-	for sn, ss := range buildservices {
-		if ss {
-			sl = append(sl, services[sn])
-		}
-	}
-	return sl
+var services = []service.Service{
+	acm.Service,
+	config.Service,
+	deviceinfo.Service,
+	filesystem.Service,
+	fwver.Service,
+	locale.Service,
+	pkgmanager.Service,
+	power.Service,
+	relver.Service,
+	vncserver.Service,
+	web.Service,
 }
