@@ -44,7 +44,7 @@ func main() {
 	}
 	sort.Strings(rsl)
 	var imports []string
-	imports = append(imports,"\"github.com/ftCommunity/roboheart/internal/service\"")
+	imports = append(imports, "\"github.com/ftCommunity/roboheart/internal/service\"")
 	var sl []string
 	for _, sn := range rsl {
 		sd, ok := services[sn]
@@ -67,5 +67,5 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	ioutil.WriteFile("internal/servicemanager/services.go", code,0644)
+	ioutil.WriteFile("internal/servicemanager/services.go", code, 0644)
 }
