@@ -1,4 +1,4 @@
-package servicemanager
+package services
 
 import (
 	"github.com/ftCommunity/roboheart/internal/service"
@@ -15,7 +15,7 @@ import (
 	"github.com/ftCommunity/roboheart/internal/services/vncserver"
 )
 
-var services = []service.Service{
+var Services = []service.Service{
 	acm.Service,
 	config.Service,
 	deviceinfo.Service,

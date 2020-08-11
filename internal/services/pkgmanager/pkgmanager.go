@@ -11,7 +11,6 @@ import (
 	"github.com/ftCommunity/roboheart/internal/services/core/fwver"
 	"github.com/ftCommunity/roboheart/internal/services/core/web"
 	fileperm "github.com/ftCommunity/roboheart/package/filepermissions"
-	"github.com/ftCommunity/roboheart/package/servicehelpers"
 	"github.com/ftCommunity/roboheart/package/threadmanager"
 	"github.com/gorilla/mux"
 	"io/ioutil"
@@ -54,13 +53,13 @@ type pkgmanager struct {
 type PkgManager interface {
 }
 
-func (p *pkgmanager) Init(services map[string]service.Service, logger service.LoggerFunc, e service.ErrorFunc) error {
+func (p *pkgmanager) Init(services map[string]service.Service, logger service.LoggerFunc, e service.ErrorFunc) {
 	p.logger = logger
 	p.error = e
 	var ok bool
 	p.acm, ok = services["acm"].(acm.ACM)
 	if !ok {
-		return errors.New("Type assertion error")
+		e(errors.New("Type assertion error"))
 	}
 	p.acm.RegisterPermission(PERMISSION_INSTALL, map[string]bool{"user": true, "app": false}, map[string]string{})
 	p.acm.RegisterPermission(PERMISSION_REMOVE, map[string]bool{"user": true, "app": false}, map[string]string{})
@@ -68,59 +67,51 @@ func (p *pkgmanager) Init(services map[string]service.Service, logger service.Lo
 	p.acm.RegisterPermission(PERMISSION_GETAVAILABLE, map[string]bool{"user": true, "app": true}, map[string]string{})
 	p.config, ok = services["config"].(config.Config)
 	if !ok {
-		return errors.New("Type assertion error")
+		e(errors.New("Type assertion error"))
 	}
 	p.sconfig = p.config.GetServiceConfig(p)
 	if err := p.sconfig.AddSection(CONFIG_SECTION, CONFIG_TYPE); err != nil {
-		return err
+		e(err)
 	}
 	p.deviceinfo, ok = services["deviceinfo"].(deviceinfo.DeviceInfo)
 	if !ok {
-		return errors.New("Type assertion error")
+		e(errors.New("Type assertion error"))
 	}
 	p.device, p.platform = p.deviceinfo.GetDevice(), p.deviceinfo.GetPlatform()
 	p.fwver, ok = services["fwver"].(fwver.FWVer)
 	if !ok {
-		return errors.New("Type assertion error")
+		e(errors.New("Type assertion error"))
 	}
 	p.firmware = p.fwver.Get()
 	if err := os.MkdirAll(PATH_PKG, fileperm.OS_U_RW_G_RW_O_R); err != nil {
-		return err
+		e(err)
 	}
 	if err := os.MkdirAll(PATH_DATA, fileperm.OS_U_RW_G_RW_O_R); err != nil {
-		return err
+		e(err)
 	}
 	p.packages = make(map[string]extendedPackage)
 	p.tm = threadmanager.NewThreadManager(p.logger, p.error)
 	go p.reloadAll()
-	return nil
 }
 
-func (p *pkgmanager) Stop() error {
+func (p *pkgmanager) Stop() {
 	p.tm.StopAll()
-	return nil
 }
 
 func (p *pkgmanager) Name() string {
 	return "pkgmanager"
 }
 
-func (p *pkgmanager) Dependencies() ([]string, []string) {
-	return []string{"acm", "config", "deviceinfo", "fwver"}, []string{"web"}
+func (p *pkgmanager) Dependencies() service.ServiceDependencies {
+	return service.ServiceDependencies{Deps: []string{"acm", "config", "deviceinfo", "fwver"}, ADeps: []string{"web"}}
 }
 
-func (p *pkgmanager) SetAdditionalDependencies(services map[string]service.Service) error {
-	if err := servicehelpers.CheckAdditionalDependencies(p, services); err != nil {
-		return err
-	}
-	var ok bool
-	p.web, ok = services["web"].(web.Web)
-	if !ok {
-		return errors.New("Type assertion error")
-	}
+func (p *pkgmanager) SetAdditionalDependencies(services map[string]service.Service) {
+	p.web = services["web"].(web.Web)
 	p.configureWeb()
-	return nil
 }
+
+func (p *pkgmanager) UnsetAdditionalDependencies([]string) {}
 
 func (p *pkgmanager) configureWeb() {
 	p.mux = p.web.RegisterServiceAPI(p)

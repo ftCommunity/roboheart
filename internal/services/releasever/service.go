@@ -31,39 +31,34 @@ type relver struct {
 	mux                 *mux.Router
 }
 
-func (r *relver) Init(services map[string]service.Service, logger service.LoggerFunc, e service.ErrorFunc) error {
+func (r *relver) Init(services map[string]service.Service, logger service.LoggerFunc, e service.ErrorFunc) {
 	r.logger = logger
 	r.error = e
 	if err := servicehelpers.CheckMainDependencies(r, services); err != nil {
-		return err
+		e(err)
 	}
-	if err := servicehelpers.InitializeDependencies(services, servicehelpers.ServiceInitializers{r.initSvcAcm}); err != nil {
-		return err
+	if err := servicehelpers.InitializeDependencies(services, servicehelpers.ServiceInitializers{"acm": r.initSvcAcm}); err != nil {
+		e(err)
 	}
 	r.gh = github.NewClient(nil)
 	r.tm = threadmanager.NewThreadManager(r.logger, r.error)
 	r.tm.Load("update", r.updateThread)
 	r.tm.Start("update")
-	return nil
 }
 
-func (r *relver) Stop() error {
+func (r *relver) Stop() {
 	r.tm.StopAll()
-	return nil
 }
 
-func (r *relver) Name() string                       { return "relver" }
-func (r *relver) Dependencies() ([]string, []string) { return []string{"acm"}, []string{"web"} }
-
-func (r *relver) SetAdditionalDependencies(services map[string]service.Service) error {
-	if err := servicehelpers.CheckAdditionalDependencies(r, services); err != nil {
-		return err
-	}
-	if err := servicehelpers.InitializeDependencies(services, servicehelpers.ServiceInitializers{r.initSvcWeb}); err != nil {
-		return err
-	}
-	return nil
+func (r *relver) Name() string { return "relver" }
+func (r *relver) Dependencies() service.ServiceDependencies {
+	return service.ServiceDependencies{Deps: []string{"acm"}, ADeps: []string{"web"}}
 }
+func (r *relver) SetAdditionalDependencies(services map[string]service.Service) {
+	servicehelpers.InitializeAdditionalDependencies(services, servicehelpers.AdditionalServiceInitializers{"web": r.initSvcWeb})
+
+}
+func (r *relver) UnsetAdditionalDependencies([]string) {}
 
 func (r *relver) getReleaseData() error {
 	releases, _, err := r.gh.Repositories.ListReleases(context.Background(), "ftCommunity", "ftcommunity-TXT", nil)

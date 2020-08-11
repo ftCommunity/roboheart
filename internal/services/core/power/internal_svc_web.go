@@ -2,19 +2,19 @@ package power
 
 import (
 	"errors"
+	"github.com/ftCommunity/roboheart/internal/service"
 	"net/http"
 	"time"
 
 	"github.com/ftCommunity/roboheart/internal/services/core/web"
 	"github.com/ftCommunity/roboheart/package/api"
-	"github.com/ftCommunity/roboheart/package/servicehelpers"
 )
 
-func (p *power) initSvcWeb(services servicehelpers.ServiceList) error {
+func (p *power) initSvcWeb(svc service.Service) {
 	var ok bool
-	p.web, ok = services["web"].(web.Web)
+	p.web, ok = svc.(web.Web)
 	if !ok {
-		return errors.New("Type assertion error")
+		p.error(errors.New("Type assertion error"))
 	}
 	p.mux = p.web.RegisterServiceAPI(p)
 	p.mux.HandleFunc("/poweroff", func(w http.ResponseWriter, r *http.Request) {
@@ -77,5 +77,4 @@ func (p *power) initSvcWeb(services servicehelpers.ServiceList) error {
 			api.ResponseWriter(w, nil)
 		}
 	}).Methods("DELETE")
-	return nil
 }

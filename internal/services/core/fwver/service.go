@@ -16,35 +16,34 @@ type fwver struct {
 	web    web.Web
 	mux    *mux.Router
 	fs     filesystem.FileSystem
+	error  service.ErrorFunc
 }
 
-func (f *fwver) Init(services map[string]service.Service, logger service.LoggerFunc, e service.ErrorFunc) error {
-	if err := servicehelpers.InitializeDependencies(services, servicehelpers.ServiceInitializers{f.initSvcFileSystem}); err != nil {
-		return err
+func (f *fwver) Init(services map[string]service.Service, logger service.LoggerFunc, e service.ErrorFunc) {
+	f.error = e
+	if err := servicehelpers.InitializeDependencies(services, servicehelpers.ServiceInitializers{"filesystem": f.initSvcFileSystem}); err != nil {
+		e(err)
 	}
 	var err error
 	f.rawver, err = filehelpers.ReadFirstLineString(f.fs, versionpath)
 	if err != nil {
-		return err
+		e(err)
 	}
 	f.semver, err = semver.Make(f.rawver)
 	if err != nil {
-		return err
+		e(err)
 	}
-	return nil
 }
 
-func (f *fwver) Name() string                       { return "fwver" }
-func (f *fwver) Dependencies() ([]string, []string) { return []string{"filesystem"}, []string{"web"} }
-func (f *fwver) SetAdditionalDependencies(services map[string]service.Service) error {
-	if err := servicehelpers.CheckAdditionalDependencies(f, services); err != nil {
-		return err
-	}
-	if err := servicehelpers.InitializeDependencies(services, servicehelpers.ServiceInitializers{f.initSvcWeb}); err != nil {
-		return err
-	}
-	return nil
+func (f *fwver) Stop()        {}
+func (f *fwver) Name() string { return "fwver" }
+func (f *fwver) Dependencies() service.ServiceDependencies {
+	return service.ServiceDependencies{Deps: []string{"filesystem"}, ADeps: []string{"web"}}
 }
+func (f *fwver) SetAdditionalDependencies(services map[string]service.Service) {
+	servicehelpers.InitializeAdditionalDependencies(services, servicehelpers.AdditionalServiceInitializers{"web": f.initSvcWeb})
+}
+func (f *fwver) UnsetAdditionalDependencies([]string) {}
 
 func (f *fwver) Get() semver.Version {
 	return f.semver

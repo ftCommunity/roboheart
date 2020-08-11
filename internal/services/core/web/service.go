@@ -20,7 +20,7 @@ type web struct {
 	srvwg       sync.WaitGroup
 }
 
-func (w *web) Init(services map[string]service.Service, logger service.LoggerFunc, e service.ErrorFunc) error {
+func (w *web) Init(services map[string]service.Service, logger service.LoggerFunc, e service.ErrorFunc) {
 	w.logger = logger
 	w.error = e
 	w.mux = mux.NewRouter()
@@ -46,15 +46,14 @@ func (w *web) Init(services map[string]service.Service, logger service.LoggerFun
 			w.error(err)
 		}
 	}()
-	return nil
 }
 
-func (w *web) Stop() error {
+func (w *web) Stop() {
 	if err := w.srv.Shutdown(context.TODO()); err != nil {
-		return err
+		w.error(err)
 	}
 	w.srvwg.Wait()
-	return nil
+
 }
 
 func (w *web) Name() string { return "web" }

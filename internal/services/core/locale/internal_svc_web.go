@@ -2,18 +2,18 @@ package locale
 
 import (
 	"errors"
+	"github.com/ftCommunity/roboheart/internal/service"
 	"net/http"
 
 	"github.com/ftCommunity/roboheart/internal/services/core/web"
 	"github.com/ftCommunity/roboheart/package/api"
-	"github.com/ftCommunity/roboheart/package/servicehelpers"
 )
 
-func (l *locale) initSvcWeb(services servicehelpers.ServiceList) error {
+func (l *locale) initSvcWeb(svc service.Service) {
 	var ok bool
-	l.web, ok = services["web"].(web.Web)
+	l.web, ok = svc.(web.Web)
 	if !ok {
-		return errors.New("Type assertion error")
+		l.error(errors.New("Type assertion error"))
 	}
 	l.mux = l.web.RegisterServiceAPI(l)
 	l.mux.HandleFunc("/locale", func(w http.ResponseWriter, r *http.Request) {
@@ -44,5 +44,4 @@ func (l *locale) initSvcWeb(services servicehelpers.ServiceList) error {
 	l.mux.HandleFunc("/allowed", func(w http.ResponseWriter, r *http.Request) {
 		api.ResponseWriter(w, l.GetAllowedLocales())
 	}).Methods("GET")
-	return nil
 }

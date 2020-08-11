@@ -2,13 +2,13 @@ package fwver
 
 import (
 	"errors"
+	"github.com/ftCommunity/roboheart/internal/service"
 	"github.com/ftCommunity/roboheart/internal/services/core/filesystem"
-	"github.com/ftCommunity/roboheart/package/servicehelpers"
 )
 
-func (f *fwver) initSvcFileSystem(services servicehelpers.ServiceList) error {
+func (f *fwver) initSvcFileSystem(svc service.Service) error {
 	var ok bool
-	f.fs, ok = services["filesystem"].(filesystem.FileSystem)
+	f.fs, ok = svc.(filesystem.FileSystem)
 	if !ok {
 		return errors.New("Type assertion error")
 	}

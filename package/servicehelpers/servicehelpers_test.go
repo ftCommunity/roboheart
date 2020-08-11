@@ -28,13 +28,7 @@ func TestCheckDependencies(t *testing.T) {
 		if err := CheckMainDependencies(&dummyService{deps: req}, map[string]service.Service{}); err == nil {
 			t.Error("Data mismatch not detected")
 		}
-		if err := CheckAdditionalDependencies(&dummyService{adeps: req}, map[string]service.Service{}); err == nil {
-			t.Error("Data mismatch not detected")
-		}
 		if err := CheckMainDependencies(&dummyService{deps: req}, services); err != nil {
-			t.Error(err)
-		}
-		if err := CheckAdditionalDependencies(&dummyService{adeps: req}, services); err != nil {
 			t.Error(err)
 		}
 	}

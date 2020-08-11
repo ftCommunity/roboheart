@@ -2,14 +2,14 @@ package vncserver
 
 import (
 	"errors"
+	"github.com/ftCommunity/roboheart/internal/service"
 
 	"github.com/ftCommunity/roboheart/internal/services/core/acm"
-	"github.com/ftCommunity/roboheart/package/servicehelpers"
 )
 
-func (v *vncserver) initSvcAcm(services servicehelpers.ServiceList) error {
+func (v *vncserver) initSvcAcm(svc service.Service) error {
 	var ok bool
-	v.acm, ok = services["acm"].(acm.ACM)
+	v.acm, ok = svc.(acm.ACM)
 	if !ok {
 		return errors.New("Type assertion error")
 	}

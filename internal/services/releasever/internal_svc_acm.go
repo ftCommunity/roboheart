@@ -2,14 +2,14 @@ package relver
 
 import (
 	"errors"
+	"github.com/ftCommunity/roboheart/internal/service"
 
 	"github.com/ftCommunity/roboheart/internal/services/core/acm"
-	"github.com/ftCommunity/roboheart/package/servicehelpers"
 )
 
-func (r *relver) initSvcAcm(services servicehelpers.ServiceList) error {
+func (r *relver) initSvcAcm(svc service.Service) error {
 	var ok bool
-	r.acm, ok = services["acm"].(acm.ACM)
+	r.acm, ok = svc.(acm.ACM)
 	if !ok {
 		return errors.New("Type assertion error")
 	}

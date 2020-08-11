@@ -14,40 +14,39 @@ type deviceinfo struct {
 	mux              *mux.Router
 	fs               filesystem.FileSystem
 	platform, device string
+	error            service.ErrorFunc
 }
 
-func (d *deviceinfo) Init(services map[string]service.Service, logger service.LoggerFunc, e service.ErrorFunc) error {
+func (d *deviceinfo) Init(services map[string]service.Service, _ service.LoggerFunc, e service.ErrorFunc) {
+	d.error = e
 	if err := servicehelpers.CheckMainDependencies(d, services); err != nil {
-		return err
+		e(err)
 	}
-	if err := servicehelpers.InitializeDependencies(services, servicehelpers.ServiceInitializers{d.initSvcFileSystem}); err != nil {
-		return err
+	if err := servicehelpers.InitializeDependencies(services, servicehelpers.ServiceInitializers{"filesystem": d.initSvcFileSystem}); err != nil {
+		e(err)
 	}
 	var err error
 	d.platform, err = filehelpers.ReadFirstLineString(d.fs, platformpath)
 	if err != nil {
-		return err
+		e(err)
 	}
 	d.device, err = filehelpers.ReadFirstLineString(d.fs, devicepath)
 	if err != nil {
-		return err
+		e(err)
 	}
-	return nil
 }
 
+func (d *deviceinfo) Stop() {}
+
 func (d *deviceinfo) Name() string { return "deviceinfo" }
-func (d *deviceinfo) Dependencies() ([]string, []string) {
-	return []string{"filesystem"}, []string{"web"}
+func (d *deviceinfo) Dependencies() service.ServiceDependencies {
+	return service.ServiceDependencies{Deps: []string{"filesystem"}, ADeps: []string{"web"}}
 }
-func (d *deviceinfo) SetAdditionalDependencies(services map[string]service.Service) error {
-	if err := servicehelpers.CheckAdditionalDependencies(d, services); err != nil {
-		return err
-	}
-	if err := servicehelpers.InitializeDependencies(services, servicehelpers.ServiceInitializers{d.initSvcWeb}); err != nil {
-		return err
-	}
-	return nil
+func (d *deviceinfo) SetAdditionalDependencies(services map[string]service.Service) {
+	servicehelpers.InitializeAdditionalDependencies(services, servicehelpers.AdditionalServiceInitializers{"web": d.initSvcWeb})
 }
+
+func (d *deviceinfo) UnsetAdditionalDependencies([]string) {}
 
 func (d *deviceinfo) GetPlatform() string { return d.platform }
 func (d *deviceinfo) GetDevice() string   { return d.device }

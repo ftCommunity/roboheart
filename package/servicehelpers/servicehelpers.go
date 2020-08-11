@@ -21,23 +21,29 @@ func checkDependencies(req []string, svcs map[string]service.Service) error {
 }
 
 func CheckMainDependencies(ds service.DependingService, svcs map[string]service.Service) error {
-	req, _ := ds.Dependencies()
-	return checkDependencies(req, svcs)
-}
-
-func CheckAdditionalDependencies(ds service.DependingService, svcs map[string]service.Service) error {
-	_, req := ds.Dependencies()
-	return checkDependencies(req, svcs)
+	sd := ds.Dependencies()
+	return checkDependencies(sd.Deps, svcs)
 }
 
 type ServiceList map[string]service.Service
-type ServiceInitializers []func(ServiceList) error
+type ServiceInitializers map[string]func(service.Service) error
+type AdditionalServiceInitializers map[string]func(service.Service)
 
 func InitializeDependencies(sl ServiceList, dcl ServiceInitializers) error {
-	for _, dc := range dcl {
-		if err := dc(sl); dc != nil {
-			return err
+	for sn, s := range sl {
+		if si, ok := dcl[sn]; ok {
+			if err := si(s); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
+}
+
+func InitializeAdditionalDependencies(sl ServiceList, dcl AdditionalServiceInitializers) {
+	for sn, s := range sl {
+		if si, ok := dcl[sn]; ok {
+			si(s)
+		}
+	}
 }

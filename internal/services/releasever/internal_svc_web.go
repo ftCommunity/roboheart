@@ -2,18 +2,18 @@ package relver
 
 import (
 	"errors"
+	"github.com/ftCommunity/roboheart/internal/service"
 	"net/http"
 
 	"github.com/ftCommunity/roboheart/internal/services/core/web"
 	"github.com/ftCommunity/roboheart/package/api"
-	"github.com/ftCommunity/roboheart/package/servicehelpers"
 )
 
-func (r *relver) initSvcWeb(services servicehelpers.ServiceList) error {
+func (r *relver) initSvcWeb(svc service.Service) {
 	var ok bool
-	r.web, ok = services["web"].(web.Web)
+	r.web, ok = svc.(web.Web)
 	if !ok {
-		return errors.New("Type assertion error")
+		r.error(errors.New("Type assertion error"))
 	}
 	r.mux = r.web.RegisterServiceAPI(r)
 	r.mux.HandleFunc("/release", func(w http.ResponseWriter, _ *http.Request) {
@@ -39,5 +39,4 @@ func (r *relver) initSvcWeb(services servicehelpers.ServiceList) error {
 		r.lock.Lock()
 		api.ResponseWriter(w, r.releases)
 	})
-	return nil
 }

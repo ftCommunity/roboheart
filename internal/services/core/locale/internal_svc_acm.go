@@ -2,14 +2,14 @@ package locale
 
 import (
 	"errors"
+	"github.com/ftCommunity/roboheart/internal/service"
 
 	"github.com/ftCommunity/roboheart/internal/services/core/acm"
-	"github.com/ftCommunity/roboheart/package/servicehelpers"
 )
 
-func (l *locale) initSvcAcm(services servicehelpers.ServiceList) error {
+func (l *locale) initSvcAcm(svc service.Service) error {
 	var ok bool
-	l.acm, ok = services["acm"].(acm.ACM)
+	l.acm, ok = svc.(acm.ACM)
 	if !ok {
 		return errors.New("Type assertion error")
 	}

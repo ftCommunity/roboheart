@@ -17,10 +17,7 @@ func main() {
 		log.Fatal(err)
 	}
 	//inititialize ServiceManager
-	err = sm.Init()
-	if err != nil {
-		log.Fatal(err)
-	}
+	sm.Init()
 	log.Println("Start-up completed")
 	//setup ctrl-c interrupt
 	c := make(chan os.Signal)

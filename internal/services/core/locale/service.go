@@ -29,14 +29,14 @@ type locale struct {
 	fs        filesystem.FileSystem
 }
 
-func (l *locale) Init(services map[string]service.Service, logger service.LoggerFunc, e service.ErrorFunc) error {
+func (l *locale) Init(services map[string]service.Service, logger service.LoggerFunc, e service.ErrorFunc) {
 	l.logger = logger
 	l.error = e
 	if err := servicehelpers.CheckMainDependencies(l, services); err != nil {
-		return err
+		e(err)
 	}
-	if err := servicehelpers.InitializeDependencies(services, servicehelpers.ServiceInitializers{l.initSvcAcm, l.initSvcFileSystem}); err != nil {
-		return err
+	if err := servicehelpers.InitializeDependencies(services, servicehelpers.ServiceInitializers{"acm": l.initSvcAcm, "fileystem": l.initSvcFileSystem}); err != nil {
+		e(err)
 	}
 	for _, ln := range LOCALES {
 		if !strings.Contains(ln, ".") {
@@ -44,28 +44,22 @@ func (l *locale) Init(services map[string]service.Service, logger service.Logger
 		}
 		l.locales = append(l.locales, ln)
 	}
-	return nil
 }
 
-func (l *locale) Stop() error {
+func (l *locale) Stop() {
 	l.lock.Lock()
-	return nil
 }
 
 func (l *locale) Name() string { return "locale" }
-func (l *locale) Dependencies() ([]string, []string) {
-	return []string{"acm", "filesystem"}, []string{"web"}
+func (l *locale) Dependencies() service.ServiceDependencies {
+	return service.ServiceDependencies{Deps: []string{"acm", "filesystem"}, ADeps: []string{"web"}}
 }
 
-func (l *locale) SetAdditionalDependencies(services map[string]service.Service) error {
-	if err := servicehelpers.CheckAdditionalDependencies(l, services); err != nil {
-		return err
-	}
-	if err := servicehelpers.InitializeDependencies(services, servicehelpers.ServiceInitializers{l.initSvcWeb}); err != nil {
-		return err
-	}
-	return nil
+func (l *locale) SetAdditionalDependencies(services map[string]service.Service) {
+	servicehelpers.InitializeAdditionalDependencies(services, servicehelpers.AdditionalServiceInitializers{"web": l.initSvcWeb})
 }
+
+func (l *locale) UnsetAdditionalDependencies([]string) {}
 
 func (l *locale) RegisterOnLocaleChangeCallback(cb func(locale string)) {
 	l.callbacks = append(l.callbacks, cb)
@@ -81,9 +75,6 @@ func (l *locale) SetLocale(token, locale string) (error, bool) {
 	l.lock.Lock()
 	defer l.lock.Unlock()
 	raw, err := afero.ReadFile(l.fs, LOCALEPATH)
-	if err != nil {
-		return err, false
-	}
 	if err != nil {
 		return err, false
 	}

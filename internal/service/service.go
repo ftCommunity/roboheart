@@ -1,34 +1,30 @@
 package service
 
 type Service interface {
-	Init(map[string]Service, LoggerFunc, ErrorFunc) error
+	Init(map[string]Service, LoggerFunc, ErrorFunc)
 	Name() string
-}
-
-type StoppableService interface {
-	Service
-	Stop() error
+	Stop()
 }
 
 type EmergencyStoppableService interface {
-	StoppableService
+	Service
 	EmergencyStop()
 }
 
 type DependingService interface {
 	Service
-	Dependencies() ([]string, []string)
+	Dependencies() ServiceDependencies
 }
 
 type AddDependingService interface {
 	DependingService
-	SetAdditionalDependencies(map[string]Service) error
-}
-
-type AddDependingUnsetService interface {
-	AddDependingService
-	UnsetAdditionalDependencies()
+	SetAdditionalDependencies(map[string]Service)
+	UnsetAdditionalDependencies([]string)
 }
 
 type LoggerFunc func(...interface{})
 type ErrorFunc func(...interface{})
+
+type ServiceDependencies struct {
+	Deps, ADeps []string
+}

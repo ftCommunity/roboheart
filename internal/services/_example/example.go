@@ -27,11 +27,13 @@ func (ex *example) Init(services map[string]service.Service, logger service.Logg
 	return nil
 }
 
-func (ex *example) Stop() error                                                { return nil }
-func (ex *example) Name() string                                               { return "example" }
-func (ex *example) Dependencies() ([]string, []string)                         { return []string{}, []string{} }
+func (ex *example) Stop() error  { return nil }
+func (ex *example) Name() string { return "example" }
+func (ex *example) Dependencies() service.ServiceDependencies {
+	return service.ServiceDependencies{Deps: []string{}, ADeps: []string{}}
+}
 func (ex *example) SetAdditionalDependencies(map[string]service.Service) error { return nil }
-func (ex *example) UnsetAdditionalDependencies()                               {}
+func (ex *example) UnsetAdditionalDependencies([]string)                       {}
 
 func (ex *example) exampleThread(logger service.LoggerFunc, e service.ErrorFunc, stop, stopped chan interface{}) {
 	//for a normal "do every x seconds"-thread you should not need to change too much

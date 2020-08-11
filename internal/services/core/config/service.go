@@ -17,34 +17,32 @@ type config struct {
 	fs     filesystem.FileSystem
 }
 
-func (c *config) Init(services map[string]service.Service, logger service.LoggerFunc, e service.ErrorFunc) error {
+func (c *config) Init(services map[string]service.Service, logger service.LoggerFunc, e service.ErrorFunc) {
 	c.logger = logger
 	c.error = e
 	if err := servicehelpers.CheckMainDependencies(c, services); err != nil {
-		return err
+		e(err)
 	}
-	if err := servicehelpers.InitializeDependencies(services, servicehelpers.ServiceInitializers{c.initSvcFileSystem}); err != nil {
-		return err
+	if err := servicehelpers.InitializeDependencies(services, servicehelpers.ServiceInitializers{"filesystem": c.initSvcFileSystem}); err != nil {
+		e(err)
 	}
 	c.tree = uci.NewTreeFromFs(afero.NewBasePathFs(nil, configPATH))
 	c.tm = threadmanager.NewThreadManager(c.logger, c.error)
 	c.tm.Load("commit", c.configCommitThread)
 	c.tm.Start("commit")
-	return nil
 }
 
-func (c *config) Stop() error {
+func (c *config) Stop() {
 	c.tm.StopAll()
 	if err := c.commit(); err != nil {
-		return err
+		c.error(err)
 	}
-	return nil
 }
 
 func (c *config) Name() string { return "config" }
 
-func (c *config) Dependencies() ([]string, []string) {
-	return []string{"filesystem"}, []string{}
+func (c *config) Dependencies() service.ServiceDependencies {
+	return service.ServiceDependencies{Deps: []string{"filesystem"}, ADeps: []string{}}
 }
 
 func (c *config) commit() error {

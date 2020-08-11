@@ -56,16 +56,16 @@ func main() {
 	}
 
 	var output []string
-	output = append(output, "package servicemanager", "")
+	output = append(output, "package services", "")
 	output = append(output, "import (")
 	output = append(output, imports...)
 	output = append(output, ")", "")
-	output = append(output, "var services = []service.Service{")
+	output = append(output, "var Services = []service.Service{")
 	output = append(output, sl...)
 	output = append(output, "}")
 	code, err := format.Source([]byte(strings.Join(output, "\n")))
 	if err != nil {
 		panic(err)
 	}
-	ioutil.WriteFile("internal/servicemanager/services.go", code, 0644)
+	ioutil.WriteFile("internal/services/services.go", code, 0644)
 }

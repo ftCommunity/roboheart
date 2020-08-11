@@ -22,48 +22,45 @@ type vncserver struct {
 	state   bool
 }
 
-func (v *vncserver) Init(services map[string]service.Service, logger service.LoggerFunc, e service.ErrorFunc) error {
+func (v *vncserver) Init(services map[string]service.Service, logger service.LoggerFunc, e service.ErrorFunc) {
 	v.logger = logger
 	v.error = e
-	if err := servicehelpers.InitializeDependencies(services, servicehelpers.ServiceInitializers{v.initSvcAcm, v.initSvcConfig}); err != nil {
-		return err
+	if err := servicehelpers.InitializeDependencies(services, servicehelpers.ServiceInitializers{"acm": v.initSvcAcm, "config": v.initSvcConfig}); err != nil {
+		e(err)
 	}
 	v.proc = procrunner.NewProcRunner("framebuffer-vncserver", "-f", "/dev/fb0", "-t", "/dev/input/event0")
 	if v.GetAutostart() {
 		v.start()
 	}
-	return nil
 }
+
+func (V *vncserver) Stop() {}
 
 func (v *vncserver) Name() string { return "vncserver" }
 
-func (v *vncserver) Dependencies() ([]string, []string) {
-	return []string{"acm", "config"}, []string{"web"}
+func (v *vncserver) Dependencies() service.ServiceDependencies {
+	return service.ServiceDependencies{Deps: []string{"acm", "config"}, ADeps: []string{"web"}}
 }
 
-func (v *vncserver) SetAdditionalDependencies(services map[string]service.Service) error {
-	if err := servicehelpers.CheckAdditionalDependencies(v, services); err != nil {
-		return err
-	}
-	if err := servicehelpers.InitializeDependencies(services, servicehelpers.ServiceInitializers{v.initSvcWeb}); err != nil {
-		return err
-	}
-	return nil
+func (v *vncserver) SetAdditionalDependencies(services map[string]service.Service) {
+	servicehelpers.InitializeAdditionalDependencies(services, servicehelpers.AdditionalServiceInitializers{"web": v.initSvcWeb})
 }
+
+func (v *vncserver) UnsetAdditionalDependencies([]string) {}
 
 func (v *vncserver) onCrash(c int) {
 	v.logger("Crashed with code", c)
 	v.logger("Restarting process")
 }
 
-func (v *vncserver) Start(token string) (error, bool) {
+func (v *vncserver) StartVNC(token string) (error, bool) {
 	if err, uae := v.acm.CheckTokenPermission(token, PERMISSION); err != nil {
 		return err, uae
 	}
 	return v.start(), false
 }
 
-func (v *vncserver) Stop(token string) (error, bool) {
+func (v *vncserver) StopVNC(token string) (error, bool) {
 	if err, uae := v.acm.CheckTokenPermission(token, PERMISSION); err != nil {
 		return err, uae
 	}

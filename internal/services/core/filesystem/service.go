@@ -9,9 +9,10 @@ type filesystem struct {
 	afero.Fs
 }
 
-func (f *filesystem) Init(map[string]service.Service, service.LoggerFunc, service.ErrorFunc) error {
+func (f *filesystem) Init(map[string]service.Service, service.LoggerFunc, service.ErrorFunc) {
 	f.Fs = afero.NewOsFs()
-	return nil
 }
+
+func (f *filesystem) Stop() {}
 
 func (f *filesystem) Name() string { return "filesystem" }

@@ -19,7 +19,7 @@ type acm struct {
 	tm          *threadmanager.ThreadManager
 }
 
-func (a *acm) Init(services map[string]service.Service, logger service.LoggerFunc, e service.ErrorFunc) error {
+func (a *acm) Init(_ map[string]service.Service, logger service.LoggerFunc, e service.ErrorFunc) {
 	a.logger = logger
 	a.error = e
 	a.permissions = make(map[string]map[string]string)
@@ -31,13 +31,12 @@ func (a *acm) Init(services map[string]service.Service, logger service.LoggerFun
 	a.tm = threadmanager.NewThreadManager(a.logger, a.error)
 	a.tm.Load("cleanup", a.cleanupThread)
 	a.tm.Start("cleanup")
-	return nil
 }
 
-func (a *acm) Stop() error  { a.tm.StopAll(); return nil }
+func (a *acm) Stop()        { a.tm.StopAll() }
 func (a *acm) Name() string { return "acm" }
 
-func (a *acm) cleanupThread(logger service.LoggerFunc, e service.ErrorFunc, stop, stopped chan interface{}) {
+func (a *acm) cleanupThread(_ service.LoggerFunc, _ service.ErrorFunc, stop, stopped chan interface{}) {
 	for {
 		select {
 		case <-stop:

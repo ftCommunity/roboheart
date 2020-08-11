@@ -2,14 +2,14 @@ package power
 
 import (
 	"errors"
+	"github.com/ftCommunity/roboheart/internal/service"
 
 	"github.com/ftCommunity/roboheart/internal/services/core/acm"
-	"github.com/ftCommunity/roboheart/package/servicehelpers"
 )
 
-func (p *power) initSvcAcm(services servicehelpers.ServiceList) error {
+func (p *power) initSvcAcm(svc service.Service) error {
 	var ok bool
-	p.acm, ok = services["acm"].(acm.ACM)
+	p.acm, ok = svc.(acm.ACM)
 	if !ok {
 		return errors.New("Type assertion error")
 	}

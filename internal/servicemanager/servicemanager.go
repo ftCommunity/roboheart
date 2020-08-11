@@ -2,6 +2,7 @@ package servicemanager
 
 import (
 	"errors"
+	"github.com/ftCommunity/roboheart/internal/services"
 	"log"
 	"strings"
 	"sync"
@@ -10,111 +11,36 @@ import (
 	"github.com/thoas/go-funk"
 )
 
-type ServiceState struct {
-	service struct {
-		base          service.Service
-		stoppable     service.StoppableService
-		emerstoppable service.EmergencyStoppableService
-		depending     service.DependingService
-		adddepending  service.AddDependingService
-		addunset      service.AddDependingUnsetService
-	}
-	running bool
-	addset  bool //Additional dependencies set
-	logger  service.LoggerFunc
-	error   service.ErrorFunc
-}
-
 type ServiceManager struct {
 	services map[string]*ServiceState
 }
 
-func (sm *ServiceManager) Init() error {
-	//inititialize services
-	if err := sm.initServices(func() []string {
-		sl := make([]string, 0)
-		//iterate over services
-		for sn := range sm.services {
-			sl = append(sl, sn)
-		}
-		return sl
-	}()); err != nil {
-		//return in case of error
-		return err
-	}
-	for sn, ss := range sm.services {
-		if ads := ss.service.adddepending; ads != nil {
-			ads.SetAdditionalDependencies(sm.getServiceAdditionalDependencies(sn))
+func (sm *ServiceManager) Init() {
+	good := false
+	for !good {
+		good = true
+		for _, ss := range sm.services {
+			ok := ss.tryRun()
+			if ok {
+				if !ss.setReadyAdeps() {
+					good = false
+				}
+			} else {
+				good = false
+			}
 		}
 	}
-	return nil
 }
 
-func (sm *ServiceManager) Stop() error {
-	var wg sync.WaitGroup
-	//iterate over services
-	for sn, ss := range sm.services {
-		//increment wait group
-		wg.Add(1)
-		go func(sn string, ss *ServiceState) {
-			//unset dependencies
-			if aus := ss.service.addunset; aus != nil {
-				aus.UnsetAdditionalDependencies()
+func (sm *ServiceManager) Stop() {
+	good := false
+	for !good {
+		good = true
+		for _, ss := range sm.services {
+			ok := ss.tryStop()
+			if !ok {
+				good = false
 			}
-			//decrease wait group
-			wg.Done()
-		}(sn, ss)
-	}
-	//wait for all services
-	wg.Wait()
-	//run forever
-	for {
-		running := false
-		//iterate over all services
-		for sn, ss := range sm.services {
-			if !ss.running {
-				//jump to next service if this is not running
-				continue
-			}
-			//found running service!
-			//save this
-			running = true
-			//assume no dependencies running
-			deprunning := false
-			//iterate over services to find running depending on this
-			for _, dss := range sm.services {
-				if !dss.running {
-					//jump to next service if this is not running
-					continue
-				}
-				//get dependencies
-				if ds := dss.service.depending; ds != nil {
-					dl, _ := ds.Dependencies()
-					if funk.ContainsString(dl, sn) {
-						//save that depending service is running
-						deprunning = true
-					}
-				}
-			}
-			//initiate stop procedure if no depending service is running
-			if !deprunning {
-				//stop it
-				if sts := ss.service.stoppable; sts != nil {
-					if err := sts.Stop(); err != nil {
-						ss.error(err)
-					}
-					//log that
-					ss.logger("Stopped")
-				} else {
-					ss.logger("Marked as stopped")
-				}
-				//save that
-				ss.running = false
-			}
-		}
-		if !running {
-			//end here when all services where already stopped
-			return nil
 		}
 	}
 }
@@ -122,13 +48,11 @@ func (sm *ServiceManager) Stop() error {
 func (sm *ServiceManager) emergencyStop() {
 	var wg sync.WaitGroup
 	for _, ss := range sm.services {
-		if es := ss.service.emerstoppable; es != nil && ss.running {
-			wg.Add(1)
-			go func() {
-				es.EmergencyStop()
-				wg.Done()
-			}()
-		}
+		wg.Add(1)
+		go func(s *ServiceState) {
+			s.emerstop()
+			wg.Done()
+		}(ss)
 	}
 	wg.Wait()
 }
@@ -141,100 +65,17 @@ func (sm *ServiceManager) genServiceLogger(sn string) service.LoggerFunc {
 
 func (sm *ServiceManager) genServiceError(sn string) service.ErrorFunc {
 	return func(v ...interface{}) {
-		log.Println(append([]interface{}{"Service error: ", sn + ": "}, v...)...)
+		log.Println(append([]interface{}{"Service error:", sn + ":"}, v...)...)
 		log.Println("Emergency stop for all services")
 		sm.emergencyStop()
 		log.Fatal("Stopped after previous error in service " + sn)
 	}
 }
 
-//initServices starts a list of services
-//caution: all services must depend on each other or dependencies must be started already
-func (sm *ServiceManager) initServices(sl []string) error {
-	//save how many are initialized
-	init := 0
-	for len(sl) > init {
-		//iterate over services
-		for _, sn := range sl {
-			ss := sm.services[sn]
-			if ss.running {
-				//ignore if running
-				continue
-			}
-			dm := false
-			//resolve dependencies
-			if ds := ss.service.depending; ds != nil {
-				dl, _ := ds.Dependencies()
-				//iterate over dependencies
-				for _, d := range dl {
-					if !sm.services[d].running {
-						//set flag if dependency is not running
-						dm = true
-					}
-				}
-			}
-			if !dm {
-				//initialize if there are no missing dependencies
-				err := ss.service.base.Init(
-					sm.getServiceDependencies(sn),
-					ss.logger,
-					ss.error,
-				)
-				if err != nil {
-					return err
-				}
-				//log running
-				ss.logger("Started")
-				//save running state
-				ss.running = true
-				//increase counter
-				init++
-			}
-		}
-	}
-	return nil
-}
-
-func (sm *ServiceManager) addService(s service.Service) {
-	sn := s.Name()
-	ss := &ServiceState{}
-	ss.service.base = s
-	if sts, ok := s.(service.StoppableService); ok {
-		ss.service.stoppable = sts
-	}
-	if es, ok := s.(service.EmergencyStoppableService); ok {
-		ss.service.emerstoppable = es
-	}
-	if ds, ok := s.(service.DependingService); ok {
-		ss.service.depending = ds
-	}
-	if ads, ok := s.(service.AddDependingService); ok {
-		ss.service.adddepending = ads
-	}
-	if aus, ok := s.(service.AddDependingUnsetService); ok {
-		ss.service.addunset = aus
-	}
-	ss.logger = sm.genServiceLogger(sn)
-	ss.error = sm.genServiceError(sn)
-	sm.services[sn] = ss
-}
-
 func (sm *ServiceManager) getServiceDependencies(sn string) map[string]service.Service {
 	dep := make(map[string]service.Service)
 	if ds := sm.services[sn].service.depending; ds != nil {
-		dl, _ := ds.Dependencies()
-		for _, d := range dl {
-			dep[d] = sm.services[d].service.base
-		}
-	}
-	return dep
-}
-
-func (sm *ServiceManager) getServiceAdditionalDependencies(sn string) map[string]service.Service {
-	dep := make(map[string]service.Service)
-	if ds := sm.services[sn].service.depending; ds != nil {
-		_, dl := ds.Dependencies()
-		for _, d := range dl {
+		for _, d := range sm.services[sn].deps.Deps {
 			dep[d] = sm.services[d].service.base
 		}
 	}
@@ -260,12 +101,13 @@ func (sm *ServiceManager) serviceCheckCircularDependencies(start string, check s
 	//checked: already checked services since start
 
 	//get dependencies
-	dl, adl := check.Dependencies()
+	deps := check.Dependencies()
+	dl, adl := deps.Deps, deps.ADeps
 	//range over dependencies and additional dependencies
 	for _, dn := range append(dl, adl...) {
 		if start == dn {
 			//circular dependency if we hit the start again
-			return errors.New("Circular import detected")
+			return errors.New("circular import detected")
 		}
 		if !funk.ContainsString(*checked, dn) {
 			//check tree if not in checked
@@ -283,15 +125,14 @@ func (sm *ServiceManager) serviceCheckCircularDependencies(start string, check s
 }
 
 func (sm *ServiceManager) checkDependencyNames() error {
-	errs := []string{}
+	var errs []string
 	//iterate over services
 	for sn, ss := range sm.services {
-		deps := []string{}
+		var deps []string
 		if ds := ss.service.depending; ds != nil {
 			//get dependencies
-			dl, adl := ds.Dependencies()
 			//range over dependencies and additional dependencies
-			for _, dn := range append(dl, adl...) {
+			for _, dn := range append(ss.deps.Deps, ss.deps.ADeps...) {
 				if _, ok := sm.services[dn]; !ok {
 					deps = append(deps, dn)
 				}
@@ -312,8 +153,9 @@ func NewServiceManager() (*ServiceManager, error) {
 	sm := new(ServiceManager)
 	sm.services = make(map[string]*ServiceState)
 	//add services
-	for _, s := range services {
-		sm.addService(s)
+	for _, s := range services.Services {
+		ss := newServiceState(sm, s)
+		sm.services[ss.name] = ss
 	}
 	//run checks
 	if err := sm.checkDependencyNames(); err != nil {
@@ -321,6 +163,10 @@ func NewServiceManager() (*ServiceManager, error) {
 	}
 	if err := sm.checkCircularDependencies(); err != nil {
 		return nil, err
+	}
+	//load second stage
+	for _, ss := range sm.services {
+		ss.loadDepData()
 	}
 	return sm, nil
 }

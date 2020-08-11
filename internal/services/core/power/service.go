@@ -17,34 +17,31 @@ const (
 )
 
 type power struct {
-	acm acm.ACM
-	web web.Web
-	mux *mux.Router
+	acm   acm.ACM
+	web   web.Web
+	mux   *mux.Router
+	error service.ErrorFunc
 }
 
-func (p *power) Init(services map[string]service.Service, _ service.LoggerFunc, _ service.ErrorFunc) error {
+func (p *power) Init(services map[string]service.Service, _ service.LoggerFunc, e service.ErrorFunc) {
+	p.error = e
 	if err := servicehelpers.CheckMainDependencies(p, services); err != nil {
-		return err
+		e(err)
 	}
-	if err := servicehelpers.InitializeDependencies(services, servicehelpers.ServiceInitializers{p.initSvcAcm}); err != nil {
-		return err
+	if err := servicehelpers.InitializeDependencies(services, servicehelpers.ServiceInitializers{"acm": p.initSvcAcm}); err != nil {
+		e(err)
 	}
-	return nil
 }
 
-func (p *power) Stop() error                        { return nil }
-func (p *power) Name() string                       { return "power" }
-func (p *power) Dependencies() ([]string, []string) { return []string{"acm"}, []string{"web"} }
-func (p *power) SetAdditionalDependencies(services map[string]service.Service) error {
-	if err := servicehelpers.CheckAdditionalDependencies(p, services); err != nil {
-		return err
-	}
-	if err := servicehelpers.InitializeDependencies(services, servicehelpers.ServiceInitializers{p.initSvcWeb}); err != nil {
-		return err
-	}
-	return nil
+func (p *power) Stop()        {}
+func (p *power) Name() string { return "power" }
+func (p *power) Dependencies() service.ServiceDependencies {
+	return service.ServiceDependencies{Deps: []string{"acm"}, ADeps: []string{"web"}}
 }
-func (p *power) UnsetAdditionalDependencies() {}
+func (p *power) SetAdditionalDependencies(services map[string]service.Service) {
+	servicehelpers.InitializeAdditionalDependencies(services, servicehelpers.AdditionalServiceInitializers{"web": p.initSvcWeb})
+}
+func (p *power) UnsetAdditionalDependencies([]string) {}
 
 func (p *power) Poweroff(token string) (error, bool) {
 	if err, uae := p.acm.CheckTokenPermission(token, PERMISSION); err != nil {
