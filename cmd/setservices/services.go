@@ -37,6 +37,11 @@ var services = map[string][3]string{
 		"power",
 		"Service",
 	},
+	"serviceadmin": {
+		"github.com/ftCommunity/roboheart/internal/services/core/serviceadmin",
+		"serviceadmin",
+		"Service",
+	},
 	"web": {
 		"github.com/ftCommunity/roboheart/internal/services/core/web",
 		"web",

@@ -12,16 +12,18 @@ type ServiceState struct {
 		emerstoppable service.EmergencyStoppableService
 		depending     service.DependingService
 		adddepending  service.AddDependingService
+		managing      service.ManagingService
 	}
 	running bool
 	deps    struct {
 		service.ServiceDependencies
-		deps   ssmap
-		rdeps  map[string]*ServiceState
+		deps          ssmap
+		rdeps         map[string]*ServiceState
 		adeps, radeps map[string]*adep
 	}
-	logger service.LoggerFunc
-	error  service.ErrorFunc
+	logger  service.LoggerFunc
+	error   service.ErrorFunc
+	builtin bool
 }
 
 type ssmap map[string]*ServiceState
@@ -61,6 +63,9 @@ func (ss *ServiceState) tryRun() bool {
 	}
 	ss.logger("Starting...")
 	ss.getBase().Init(ss.deps.deps.toServiceMap(), ss.logger, ss.error)
+	if ss.service.managing != nil {
+		ss.service.managing.SetServiceManager(ss.sm.exposed)
+	}
 	ss.logger("Started successfully")
 	ss.running = true
 	return true
@@ -138,26 +143,38 @@ func (ss *ServiceState) loadDepData() {
 	}
 }
 
-func newServiceState(sm *ServiceManager, s service.Service) *ServiceState {
-	ss := &ServiceState{}
-	ss.name = s.Name()
-	ss.service.base = s
-	if es, ok := s.(service.EmergencyStoppableService); ok {
+func (ss *ServiceState) loadInterfaces() {
+	if es, ok := ss.getBase().(service.EmergencyStoppableService); ok {
 		ss.service.emerstoppable = es
 	}
-	if ds, ok := s.(service.DependingService); ok {
+	if ds, ok := ss.getBase().(service.DependingService); ok {
 		ss.service.depending = ds
 		ss.deps.ServiceDependencies = ds.Dependencies()
-		if ads, ok := s.(service.AddDependingService); ok {
+		if ads, ok := ss.getBase().(service.AddDependingService); ok {
 			ss.service.adddepending = ads
 		}
 	}
-	ss.logger = sm.genServiceLogger(ss.name)
-	ss.error = sm.genServiceError(ss.name)
-	ss.sm = sm
+	if ms, ok := ss.getBase().(service.ManagingService); ok && ss.builtin {
+		ss.service.managing = ms
+	}
+}
+
+func (ss *ServiceState) load() {
+	ss.loadInterfaces()
+	ss.logger = ss.sm.genServiceLogger(ss.name)
+	ss.error = ss.sm.genServiceError(ss.name)
 	ss.deps.deps = make(ssmap)
 	ss.deps.rdeps = make(map[string]*ServiceState)
 	ss.deps.adeps = make(map[string]*adep)
 	ss.deps.radeps = make(map[string]*adep)
+}
+
+func newServiceStateBuiltin(sm *ServiceManager, s service.Service) *ServiceState {
+	ss := &ServiceState{}
+	ss.service.base = s
+	ss.name = s.Name()
+	ss.builtin = true
+	ss.sm = sm
+	ss.load()
 	return ss
 }

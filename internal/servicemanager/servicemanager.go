@@ -13,6 +13,7 @@ import (
 
 type ServiceManager struct {
 	services map[string]*ServiceState
+	exposed  *exposed
 }
 
 func (sm *ServiceManager) Init() {
@@ -154,7 +155,7 @@ func NewServiceManager() (*ServiceManager, error) {
 	sm.services = make(map[string]*ServiceState)
 	//add services
 	for _, s := range services.Services {
-		ss := newServiceState(sm, s)
+		ss := newServiceStateBuiltin(sm, s)
 		sm.services[ss.name] = ss
 	}
 	//run checks
@@ -168,5 +169,6 @@ func NewServiceManager() (*ServiceManager, error) {
 	for _, ss := range sm.services {
 		ss.loadDepData()
 	}
+	sm.exposed = newExposed(sm)
 	return sm, nil
 }

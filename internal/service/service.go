@@ -22,6 +22,13 @@ type AddDependingService interface {
 	UnsetAdditionalDependencies([]string)
 }
 
+type ManagingService interface {
+	SetServiceManager(ServiceManager)
+}
+
+type ServiceManager interface {
+}
+
 type LoggerFunc func(...interface{})
 type ErrorFunc func(...interface{})
 
