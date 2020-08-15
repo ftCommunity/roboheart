@@ -47,3 +47,11 @@ func InitializeAdditionalDependencies(sl ServiceList, dcl AdditionalServiceIniti
 		}
 	}
 }
+
+type AdditionalServiceDeinitializers map[string]func()
+
+func DeinitAdditionalDependencies(dl []string, dcl AdditionalServiceDeinitializers) {
+	for _, sn := range dl {
+		dcl[sn]()
+	}
+}
