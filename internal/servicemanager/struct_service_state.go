@@ -18,8 +18,7 @@ type ServiceState struct {
 		service.ServiceDependencies
 		deps   ssmap
 		rdeps  map[string]*ServiceState
-		adeps  map[string]adep
-		radeps map[string]*adep
+		adeps, radeps map[string]*adep
 	}
 	logger service.LoggerFunc
 	error  service.ErrorFunc
@@ -130,7 +129,7 @@ func (ss *ServiceState) loadDepData() {
 		ss.sm.services[sn].deps.rdeps[ss.name] = ss
 	}
 	for _, sn := range ss.deps.ADeps {
-		ss.deps.adeps[sn] = adep{
+		ss.deps.adeps[sn] = &adep{
 			ServiceState: ss.sm.services[sn],
 		}
 		ss.sm.services[sn].deps.radeps[ss.name] = &adep{
@@ -158,7 +157,7 @@ func newServiceState(sm *ServiceManager, s service.Service) *ServiceState {
 	ss.sm = sm
 	ss.deps.deps = make(ssmap)
 	ss.deps.rdeps = make(map[string]*ServiceState)
-	ss.deps.adeps = make(map[string]adep)
+	ss.deps.adeps = make(map[string]*adep)
 	ss.deps.radeps = make(map[string]*adep)
 	return ss
 }
