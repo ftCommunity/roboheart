@@ -9,6 +9,7 @@ import (
 	"github.com/ftCommunity/roboheart/internal/services/core/fwver"
 	"github.com/ftCommunity/roboheart/internal/services/core/locale"
 	"github.com/ftCommunity/roboheart/internal/services/core/power"
+	"github.com/ftCommunity/roboheart/internal/services/core/serviceadmin"
 	"github.com/ftCommunity/roboheart/internal/services/core/web"
 	"github.com/ftCommunity/roboheart/internal/services/pkgmanager"
 	"github.com/ftCommunity/roboheart/internal/services/releasever"
@@ -25,6 +26,7 @@ var Services = []service.Service{
 	pkgmanager.Service,
 	power.Service,
 	relver.Service,
+	serviceadmin.Service,
 	vncserver.Service,
 	web.Service,
 }
