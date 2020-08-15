@@ -14,7 +14,6 @@ import (
 	"github.com/ftCommunity/roboheart/package/servicehelpers"
 	"github.com/ftCommunity/roboheart/package/threadmanager"
 	"github.com/google/go-github/v31/github"
-	"github.com/gorilla/mux"
 )
 
 type relver struct {
@@ -28,7 +27,6 @@ type relver struct {
 	tm                  *threadmanager.ThreadManager
 	acm                 acm.ACM
 	web                 web.Web
-	mux                 *mux.Router
 }
 
 func (r *relver) Init(services map[string]service.Service, logger service.LoggerFunc, e service.ErrorFunc) {
@@ -58,7 +56,9 @@ func (r *relver) SetAdditionalDependencies(services map[string]service.Service) 
 	servicehelpers.InitializeAdditionalDependencies(services, servicehelpers.AdditionalServiceInitializers{"web": r.initSvcWeb})
 
 }
-func (r *relver) UnsetAdditionalDependencies([]string) {}
+func (r *relver) UnsetAdditionalDependencies(services []string) {
+	servicehelpers.DeinitAdditionalDependencies(services, servicehelpers.AdditionalServiceDeinitializers{"web": r.deinitSvcWeb})
+}
 
 func (r *relver) getReleaseData() error {
 	releases, _, err := r.gh.Repositories.ListReleases(context.Background(), "ftCommunity", "ftcommunity-TXT", nil)

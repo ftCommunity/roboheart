@@ -3,10 +3,9 @@ package locale
 import (
 	"errors"
 	"github.com/ftCommunity/roboheart/internal/service"
-	"net/http"
-
 	"github.com/ftCommunity/roboheart/internal/services/core/web"
 	"github.com/ftCommunity/roboheart/package/api"
+	"github.com/labstack/echo/v4"
 )
 
 func (l *locale) initSvcWeb(svc service.Service) {
@@ -15,33 +14,43 @@ func (l *locale) initSvcWeb(svc service.Service) {
 	if !ok {
 		l.error(errors.New("Type assertion error"))
 	}
-	l.mux = l.web.RegisterServiceAPI(l)
-	l.mux.HandleFunc("/locale", func(w http.ResponseWriter, r *http.Request) {
+	l.web.RegisterServiceAPI(l)
+}
+
+func (l *locale) deinitSvcWeb() {
+	l.web.UnregisterServiceAPI(l)
+}
+
+func (l *locale) WebRegisterRoutes(group *echo.Group) {
+	group.GET("/locale", func(c echo.Context) error {
 		if locale, err := l.GetLocale(); err != nil {
-			api.ErrorResponseWriter(w, 500, err)
+			api.ErrorResponseWriter(c, 500, err)
 		} else {
-			api.ResponseWriter(w, locale)
+			api.ResponseWriter(c, locale)
 		}
-	}).Methods("GET")
-	l.mux.HandleFunc("/locale", func(w http.ResponseWriter, r *http.Request) {
+		return nil
+	})
+	group.POST("/locale", func(c echo.Context) error {
 		data := &struct {
 			api.TokenRequest
 			Locale string `json:"locale"`
 		}{}
-		if !api.RequestLoader(r, w, data) {
-			return
+		if !api.RequestLoader(c, data) {
+			return nil
 		}
 		if err, uae := l.SetLocale(data.Token, data.Locale); err != nil {
 			code := 500
 			if uae {
 				code = 403
 			}
-			api.ErrorResponseWriter(w, code, err)
+			api.ErrorResponseWriter(c, code, err)
 		} else {
-			api.ResponseWriter(w, nil)
+			api.ResponseWriter(c, nil)
 		}
-	}).Methods("POST")
-	l.mux.HandleFunc("/allowed", func(w http.ResponseWriter, r *http.Request) {
-		api.ResponseWriter(w, l.GetAllowedLocales())
-	}).Methods("GET")
+		return nil
+	})
+	group.GET("/allowed", func(c echo.Context) error {
+		api.ResponseWriter(c, l.GetAllowedLocales())
+		return nil
+	})
 }

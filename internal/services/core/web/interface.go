@@ -1,10 +1,8 @@
 package web
 
-import (
-	"github.com/ftCommunity/roboheart/internal/service"
-	"github.com/gorilla/mux"
-)
+import "github.com/ftCommunity/roboheart/internal/service"
 
 type Web interface {
-	RegisterServiceAPI(service.Service) *mux.Router
+	RegisterServiceAPI(webservice)
+	UnregisterServiceAPI(service.Service)
 }

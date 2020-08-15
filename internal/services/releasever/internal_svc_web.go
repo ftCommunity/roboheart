@@ -3,10 +3,9 @@ package relver
 import (
 	"errors"
 	"github.com/ftCommunity/roboheart/internal/service"
-	"net/http"
-
 	"github.com/ftCommunity/roboheart/internal/services/core/web"
 	"github.com/ftCommunity/roboheart/package/api"
+	"github.com/labstack/echo/v4"
 )
 
 func (r *relver) initSvcWeb(svc service.Service) {
@@ -15,28 +14,38 @@ func (r *relver) initSvcWeb(svc service.Service) {
 	if !ok {
 		r.error(errors.New("Type assertion error"))
 	}
-	r.mux = r.web.RegisterServiceAPI(r)
-	r.mux.HandleFunc("/release", func(w http.ResponseWriter, _ *http.Request) {
+	r.web.RegisterServiceAPI(r)
+}
+
+func (r *relver) deinitSvcWeb() {
+	r.web.UnregisterServiceAPI(r)
+}
+
+func (r *relver) WebRegisterRoutes(group *echo.Group) {
+	group.GET("/release", func(c echo.Context) error {
 		defer r.lock.Unlock()
 		r.lock.Lock()
 		if r.release != nil {
-			api.ResponseWriter(w, r.release)
+			api.ResponseWriter(c, r.release)
 		} else {
-			api.ErrorResponseWriter(w, 503, errors.New("Version information not available"))
+			api.ErrorResponseWriter(c, 503, errors.New("Version information not available"))
 		}
+		return nil
 	})
-	r.mux.HandleFunc("/prerelease", func(w http.ResponseWriter, _ *http.Request) {
+	group.GET("/prerelease", func(c echo.Context) error {
 		defer r.lock.Unlock()
 		r.lock.Lock()
 		if r.prerelease != nil {
-			api.ResponseWriter(w, r.prerelease)
+			api.ResponseWriter(c, r.prerelease)
 		} else {
-			api.ErrorResponseWriter(w, 503, errors.New("Version information not available"))
+			api.ErrorResponseWriter(c, 503, errors.New("Version information not available"))
 		}
+		return nil
 	})
-	r.mux.HandleFunc("/releases", func(w http.ResponseWriter, _ *http.Request) {
+	group.GET("/releases", func(c echo.Context) error {
 		defer r.lock.Unlock()
 		r.lock.Lock()
-		api.ResponseWriter(w, r.releases)
+		api.ResponseWriter(c, r.releases)
+		return nil
 	})
 }

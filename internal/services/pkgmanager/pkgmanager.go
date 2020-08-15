@@ -12,7 +12,6 @@ import (
 	"github.com/ftCommunity/roboheart/internal/services/core/web"
 	fileperm "github.com/ftCommunity/roboheart/package/filepermissions"
 	"github.com/ftCommunity/roboheart/package/threadmanager"
-	"github.com/gorilla/mux"
 	"io/ioutil"
 	"os"
 	"path"
@@ -45,7 +44,6 @@ type pkgmanager struct {
 	fwver            fwver.FWVer
 	firmware         semver.Version
 	web              web.Web
-	mux              *mux.Router
 	packages         map[string]extendedPackage
 	treelock         sync.Mutex
 }
@@ -114,7 +112,6 @@ func (p *pkgmanager) SetAdditionalDependencies(services map[string]service.Servi
 func (p *pkgmanager) UnsetAdditionalDependencies([]string) {}
 
 func (p *pkgmanager) configureWeb() {
-	p.mux = p.web.RegisterServiceAPI(p)
 }
 
 func (p *pkgmanager) loadPackageManifest(pkg, variant string) error {

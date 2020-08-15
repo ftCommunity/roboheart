@@ -3,10 +3,9 @@ package deviceinfo
 import (
 	"errors"
 	"github.com/ftCommunity/roboheart/internal/service"
-	"net/http"
-
 	"github.com/ftCommunity/roboheart/internal/services/core/web"
 	"github.com/ftCommunity/roboheart/package/api"
+	"github.com/labstack/echo/v4"
 )
 
 func (d *deviceinfo) initSvcWeb(svc service.Service) {
@@ -15,11 +14,20 @@ func (d *deviceinfo) initSvcWeb(svc service.Service) {
 	if !ok {
 		d.error(errors.New("Type assertion error"))
 	}
-	d.mux = d.web.RegisterServiceAPI(d)
-	d.mux.HandleFunc("/platform", func(w http.ResponseWriter, _ *http.Request) {
-		api.ResponseWriter(w, d.GetPlatform())
+	d.web.RegisterServiceAPI(d)
+}
+
+func (d *deviceinfo) deinitSvcWeb() {
+	d.web.UnregisterServiceAPI(d)
+}
+
+func (d *deviceinfo) WebRegisterRoutes(group *echo.Group) {
+	group.GET("/platform", func(c echo.Context) error {
+		api.ResponseWriter(c, d.GetPlatform())
+		return nil
 	})
-	d.mux.HandleFunc("/device", func(w http.ResponseWriter, _ *http.Request) {
-		api.ResponseWriter(w, d.GetDevice())
+	group.GET("/device", func(c echo.Context) error {
+		api.ResponseWriter(c, d.GetDevice())
+		return nil
 	})
 }

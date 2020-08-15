@@ -7,7 +7,6 @@ import (
 	"github.com/ftCommunity/roboheart/internal/services/core/web"
 	"github.com/ftCommunity/roboheart/package/procrunner"
 	"github.com/ftCommunity/roboheart/package/servicehelpers"
-	"github.com/gorilla/mux"
 )
 
 type vncserver struct {
@@ -16,7 +15,6 @@ type vncserver struct {
 	proc    *procrunner.ProcRunner
 	acm     acm.ACM
 	web     web.Web
-	mux     *mux.Router
 	config  config.Config
 	sconfig *config.ServiceConfig
 	state   bool
@@ -46,7 +44,9 @@ func (v *vncserver) SetAdditionalDependencies(services map[string]service.Servic
 	servicehelpers.InitializeAdditionalDependencies(services, servicehelpers.AdditionalServiceInitializers{"web": v.initSvcWeb})
 }
 
-func (v *vncserver) UnsetAdditionalDependencies([]string) {}
+func (v *vncserver) UnsetAdditionalDependencies(services []string) {
+	servicehelpers.DeinitAdditionalDependencies(services, servicehelpers.AdditionalServiceDeinitializers{"web": v.deinitSvcWeb})
+}
 
 func (v *vncserver) onCrash(c int) {
 	v.logger("Crashed with code", c)

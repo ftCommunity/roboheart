@@ -3,67 +3,85 @@ package web
 import (
 	"context"
 	"errors"
+	"github.com/ftCommunity/roboheart/internal/service"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
+	"github.com/labstack/gommon/log"
 	"net/http"
 	"sync"
-
-	"github.com/ftCommunity/roboheart/internal/service"
-	"github.com/ftCommunity/roboheart/package/api"
-	"github.com/gorilla/mux"
 )
 
 type web struct {
-	logger      service.LoggerFunc
-	error       service.ErrorFunc
-	mux, apiMux *mux.Router
-	services    []string
-	srv         *http.Server
-	srvwg       sync.WaitGroup
+	logger   service.LoggerFunc
+	error    service.ErrorFunc
+	echo     *echo.Echo
+	services map[string]webservice
+	lock     sync.Mutex
 }
 
-func (w *web) Init(services map[string]service.Service, logger service.LoggerFunc, e service.ErrorFunc) {
+func (w *web) Init(_ map[string]service.Service, logger service.LoggerFunc, e service.ErrorFunc) {
 	w.logger = logger
 	w.error = e
-	w.mux = mux.NewRouter()
-	w.mux.Use(serverHeaderMiddleware)
-	w.mux.NotFoundHandler = w.mux.NewRoute().BuildOnly().HandlerFunc(http.NotFound).GetHandler()
-	w.mux.MethodNotAllowedHandler = w.mux.NewRoute().BuildOnly().HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		http.Error(w, "405 method not allowed", http.StatusMethodNotAllowed)
-	}).GetHandler()
-	w.apiMux = getSubMux(w.mux, "/api")
-	w.apiMux.Methods("OPTIONS").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
-	w.apiMux.Use(corsHeadersMiddleware)
-	w.apiMux.NotFoundHandler = w.apiMux.NewRoute().BuildOnly().HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		api.ErrorResponseWriter(w, 404, errors.New("Page not found"))
-	}).GetHandler()
-	w.apiMux.MethodNotAllowedHandler = w.apiMux.NewRoute().BuildOnly().HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		api.ErrorResponseWriter(w, 405, errors.New("Method not allowed"))
-	}).GetHandler()
-	w.srv = &http.Server{Addr: ":8080", Handler: w.mux}
-	go func() {
-		w.srvwg.Add(1)
-		defer w.srvwg.Done()
-		if err := w.srv.ListenAndServe(); err != http.ErrServerClosed {
-			w.error(err)
-		}
-	}()
+	w.services = make(map[string]webservice)
+	w.echo = echo.New()
+	w.echo.Logger.SetLevel(log.OFF)
+	w.echo.HideBanner = true
+	w.echo.HidePort = true
+	w.start()
 }
 
 func (w *web) Stop() {
-	if err := w.srv.Shutdown(context.TODO()); err != nil {
-		w.error(err)
-	}
-	w.srvwg.Wait()
-
+	w.lock.Lock()
+	defer w.lock.Unlock()
+	w.stop()
 }
 
 func (w *web) Name() string { return "web" }
 
-func (w *web) RegisterServiceAPI(s service.Service) *mux.Router {
-	m := getSubMux(w.apiMux, "/"+s.Name())
-	w.services = append(w.services, s.Name())
-	return m
+func (w *web) RegisterServiceAPI(svc webservice) {
+	if _, ok := w.services[svc.Name()]; ok {
+		w.error(errors.New(svc.Name() + " was registered twice"))
+	}
+	w.lock.Lock()
+	defer w.lock.Unlock()
+	w.services[svc.Name()] = svc
+	svc.WebRegisterRoutes(w.getServiceGroup(svc.Name()))
 }
 
-func getSubMux(m *mux.Router, p string) *mux.Router {
-	return m.PathPrefix(p).Subrouter()
+func (w *web) UnregisterServiceAPI(svc service.Service) {
+	if _, ok := w.services[svc.Name()]; !ok {
+		w.error(errors.New(svc.Name() + " is not registered"))
+	}
+	w.lock.Lock()
+	defer w.lock.Unlock()
+	delete(w.services, svc.Name())
+	w.restart()
+}
+
+func (w *web) start() {
+	go func() {
+		if err := w.echo.Start(":8080"); err != nil {
+			if err != http.ErrServerClosed {
+				w.error(err)
+			}
+		}
+	}()
+}
+
+func (w *web) stop() {
+	if err := w.echo.Shutdown(context.TODO()); err != nil {
+		w.error(err)
+	}
+}
+
+func (w *web) restart() {
+	w.stop()
+	w.start()
+	for sn, svc := range w.services {
+		svc.WebRegisterRoutes(w.getServiceGroup(sn))
+	}
+}
+
+func (w *web) getServiceGroup(name string) *echo.Group {
+	return w.echo.Group("/api/"+name, middleware.CORS())
 }

@@ -9,7 +9,6 @@ import (
 	"github.com/ftCommunity/roboheart/internal/services/core/acm"
 	"github.com/ftCommunity/roboheart/internal/services/core/web"
 	"github.com/ftCommunity/roboheart/package/servicehelpers"
-	"github.com/gorilla/mux"
 )
 
 const (
@@ -19,7 +18,6 @@ const (
 type power struct {
 	acm   acm.ACM
 	web   web.Web
-	mux   *mux.Router
 	error service.ErrorFunc
 }
 
@@ -41,7 +39,9 @@ func (p *power) Dependencies() service.ServiceDependencies {
 func (p *power) SetAdditionalDependencies(services map[string]service.Service) {
 	servicehelpers.InitializeAdditionalDependencies(services, servicehelpers.AdditionalServiceInitializers{"web": p.initSvcWeb})
 }
-func (p *power) UnsetAdditionalDependencies([]string) {}
+func (p *power) UnsetAdditionalDependencies(services []string) {
+	servicehelpers.DeinitAdditionalDependencies(services, servicehelpers.AdditionalServiceDeinitializers{"web": p.deinitSvcWeb})
+}
 
 func (p *power) Poweroff(token string) (error, bool) {
 	if err, uae := p.acm.CheckTokenPermission(token, PERMISSION); err != nil {

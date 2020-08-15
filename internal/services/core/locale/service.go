@@ -11,7 +11,6 @@ import (
 	"github.com/ftCommunity/roboheart/internal/services/core/web"
 	fileperm "github.com/ftCommunity/roboheart/package/filepermissions"
 	"github.com/ftCommunity/roboheart/package/servicehelpers"
-	"github.com/gorilla/mux"
 	"github.com/thoas/go-funk"
 
 	"github.com/ftCommunity/roboheart/internal/service"
@@ -24,7 +23,6 @@ type locale struct {
 	callbacks []func(string)
 	lock      sync.Mutex
 	web       web.Web
-	mux       *mux.Router
 	acm       acm.ACM
 	fs        filesystem.FileSystem
 }
@@ -59,7 +57,9 @@ func (l *locale) SetAdditionalDependencies(services map[string]service.Service) 
 	servicehelpers.InitializeAdditionalDependencies(services, servicehelpers.AdditionalServiceInitializers{"web": l.initSvcWeb})
 }
 
-func (l *locale) UnsetAdditionalDependencies([]string) {}
+func (l *locale) UnsetAdditionalDependencies(services []string) {
+	servicehelpers.DeinitAdditionalDependencies(services, servicehelpers.AdditionalServiceDeinitializers{"web": l.deinitSvcWeb})
+}
 
 func (l *locale) RegisterOnLocaleChangeCallback(cb func(locale string)) {
 	l.callbacks = append(l.callbacks, cb)

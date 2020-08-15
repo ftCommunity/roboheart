@@ -7,14 +7,12 @@ import (
 	"github.com/ftCommunity/roboheart/internal/services/core/web"
 	"github.com/ftCommunity/roboheart/package/filehelpers"
 	"github.com/ftCommunity/roboheart/package/servicehelpers"
-	"github.com/gorilla/mux"
 )
 
 type fwver struct {
 	rawver string
 	semver semver.Version
 	web    web.Web
-	mux    *mux.Router
 	fs     filesystem.FileSystem
 	error  service.ErrorFunc
 }
@@ -43,7 +41,9 @@ func (f *fwver) Dependencies() service.ServiceDependencies {
 func (f *fwver) SetAdditionalDependencies(services map[string]service.Service) {
 	servicehelpers.InitializeAdditionalDependencies(services, servicehelpers.AdditionalServiceInitializers{"web": f.initSvcWeb})
 }
-func (f *fwver) UnsetAdditionalDependencies([]string) {}
+func (f *fwver) UnsetAdditionalDependencies(services []string) {
+	servicehelpers.DeinitAdditionalDependencies(services, servicehelpers.AdditionalServiceDeinitializers{"web": f.deinitSvcWeb})
+}
 
 func (f *fwver) Get() semver.Version {
 	return f.semver

@@ -1,32 +1,20 @@
 package api
 
 import (
-	"encoding/json"
 	"errors"
-	"net/http"
+	"github.com/labstack/echo/v4"
 )
 
-func RawResponseWriter(w http.ResponseWriter, code int, payload []byte, contenttype string) {
-	w.Header().Add("Content-Type", contenttype)
-	w.WriteHeader(code)
-	w.Write(payload)
+func ErrorResponseWriter(c echo.Context, code int, err error) {
+	jsonResponseWriter(c, code, Response{Status: "Error", Error: err.Error()})
 }
 
-func ErrorResponseWriter(w http.ResponseWriter, code int, err error) {
-	jsonResponseWriter(w, code, Response{Status: "Error", Error: err.Error()})
+func ResponseWriter(c echo.Context, payload interface{}) {
+	jsonResponseWriter(c, 200, Response{Status: "OK", Data: payload})
 }
 
-func ResponseWriter(w http.ResponseWriter, payload interface{}) {
-	jsonResponseWriter(w, 200, Response{Status: "OK", Data: payload})
-}
-
-func jsonResponseWriter(w http.ResponseWriter, code int, raw interface{}) {
-	payload, e := json.Marshal(raw)
-	if e != nil {
-		ErrorResponseWriter(w, 500, errors.New("JSON Marshal error"))
-	} else {
-		w.Header().Add("Content-Type", "application/json")
-		w.WriteHeader(code)
-		w.Write(payload)
+func jsonResponseWriter(c echo.Context, code int, raw interface{}) {
+	if err := c.JSON(code, raw); err != nil {
+		ErrorResponseWriter(c, 500, errors.New("JSON Marshal error"))
 	}
 }

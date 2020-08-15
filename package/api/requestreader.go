@@ -1,19 +1,12 @@
 package api
 
 import (
-	"encoding/json"
-	"io/ioutil"
-	"net/http"
+	"github.com/labstack/echo/v4"
 )
 
-func RequestLoader(r *http.Request, w http.ResponseWriter, v interface{}) bool {
-	bodyb, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		ErrorResponseWriter(w, 400, err)
-		return false
-	}
-	if err := json.Unmarshal(bodyb, v); err != nil {
-		ErrorResponseWriter(w, 400, err)
+func RequestLoader(c echo.Context, v interface{}) bool {
+	if err := c.Bind(v); err != nil {
+		ErrorResponseWriter(c, 400, err)
 		return false
 	}
 	return true

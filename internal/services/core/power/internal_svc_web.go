@@ -3,7 +3,7 @@ package power
 import (
 	"errors"
 	"github.com/ftCommunity/roboheart/internal/service"
-	"net/http"
+	"github.com/labstack/echo/v4"
 	"time"
 
 	"github.com/ftCommunity/roboheart/internal/services/core/web"
@@ -16,65 +16,76 @@ func (p *power) initSvcWeb(svc service.Service) {
 	if !ok {
 		p.error(errors.New("Type assertion error"))
 	}
-	p.mux = p.web.RegisterServiceAPI(p)
-	p.mux.HandleFunc("/poweroff", func(w http.ResponseWriter, r *http.Request) {
+	p.web.RegisterServiceAPI(p)
+}
+
+func (p *power) deinitSvcWeb() {
+	p.web.UnregisterServiceAPI(p)
+}
+
+func (p *power) WebRegisterRoutes(group *echo.Group) {
+	group.POST("poweroff", func(c echo.Context) error {
 		data := &api.TokenRequest{}
-		if !api.RequestLoader(r, w, data) {
-			return
+		if !api.RequestLoader(c, data) {
+			return nil
 		}
 		if err, uae := p.Poweroff(data.Token); err != nil {
 			code := 500
 			if uae {
 				code = 403
 			}
-			api.ErrorResponseWriter(w, code, err)
+			api.ErrorResponseWriter(c, code, err)
 		} else {
-			api.ResponseWriter(w, nil)
+			api.ResponseWriter(c, nil)
 		}
-	}).Methods("POST")
-	p.mux.HandleFunc("/reboot", func(w http.ResponseWriter, r *http.Request) {
+		return nil
+	})
+	group.POST("/reboot", func(c echo.Context) error {
 		data := &api.TokenRequest{}
-		if !api.RequestLoader(r, w, data) {
-			return
+		if !api.RequestLoader(c, data) {
+			return nil
 		}
 		if err, uae := p.Reboot(data.Token); err != nil {
 			code := 500
 			if uae {
 				code = 403
 			}
-			api.ErrorResponseWriter(w, code, err)
+			api.ErrorResponseWriter(c, code, err)
 		} else {
-			api.ResponseWriter(w, nil)
+			api.ResponseWriter(c, nil)
 		}
-	}).Methods("POST")
-	p.mux.HandleFunc("/wakealarm", func(w http.ResponseWriter, r *http.Request) {
+		return nil
+	})
+	group.POST("/wakealarm", func(c echo.Context) error {
 		data := &wakeAlarmRequest{}
-		if !api.RequestLoader(r, w, data) {
-			return
+		if !api.RequestLoader(c, data) {
+			return nil
 		}
 		if err, uae := p.SetWakeAlarm(time.Unix(data.Time, 0), data.Token); err != nil {
 			code := 500
 			if uae {
 				code = 403
 			}
-			api.ErrorResponseWriter(w, code, err)
+			api.ErrorResponseWriter(c, code, err)
 		} else {
-			api.ResponseWriter(w, nil)
+			api.ResponseWriter(c, nil)
 		}
+		return nil
 	})
-	p.mux.HandleFunc("/wakealarm", func(w http.ResponseWriter, r *http.Request) {
+	group.DELETE("/wakealarm", func(c echo.Context) error {
 		data := &api.TokenRequest{}
-		if !api.RequestLoader(r, w, data) {
-			return
+		if !api.RequestLoader(c, data) {
+			return nil
 		}
 		if err, uae := p.UnsetWakeAlarm(data.Token); err != nil {
 			code := 500
 			if uae {
 				code = 403
 			}
-			api.ErrorResponseWriter(w, code, err)
+			api.ErrorResponseWriter(c, code, err)
 		} else {
-			api.ResponseWriter(w, nil)
+			api.ResponseWriter(c, nil)
 		}
-	}).Methods("DELETE")
+		return nil
+	})
 }

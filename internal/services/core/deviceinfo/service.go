@@ -6,12 +6,10 @@ import (
 	"github.com/ftCommunity/roboheart/internal/services/core/web"
 	"github.com/ftCommunity/roboheart/package/filehelpers"
 	"github.com/ftCommunity/roboheart/package/servicehelpers"
-	"github.com/gorilla/mux"
 )
 
 type deviceinfo struct {
 	web              web.Web
-	mux              *mux.Router
 	fs               filesystem.FileSystem
 	platform, device string
 	error            service.ErrorFunc
@@ -46,7 +44,9 @@ func (d *deviceinfo) SetAdditionalDependencies(services map[string]service.Servi
 	servicehelpers.InitializeAdditionalDependencies(services, servicehelpers.AdditionalServiceInitializers{"web": d.initSvcWeb})
 }
 
-func (d *deviceinfo) UnsetAdditionalDependencies([]string) {}
+func (d *deviceinfo) UnsetAdditionalDependencies(services []string) {
+	servicehelpers.DeinitAdditionalDependencies(services, servicehelpers.AdditionalServiceDeinitializers{"web": d.deinitSvcWeb})
+}
 
 func (d *deviceinfo) GetPlatform() string { return d.platform }
 func (d *deviceinfo) GetDevice() string   { return d.device }
