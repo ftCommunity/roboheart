@@ -1,5 +1,7 @@
 package service
 
+import "github.com/ftCommunity/roboheart/internal/servicemanager/exposedstructs"
+
 type Service interface {
 	Init(map[string]Service, LoggerFunc, ErrorFunc)
 	Name() string
@@ -27,6 +29,9 @@ type ManagingService interface {
 }
 
 type ServiceManager interface {
+	GetServiceList() []string
+	GetServiceInfo(string) (exposedstructs.ServiceInfo, error)
+	GetServicesInfo() map[string]exposedstructs.ServiceInfo
 }
 
 type LoggerFunc func(...interface{})
