@@ -24,7 +24,7 @@ func (p *power) deinitSvcWeb() {
 }
 
 func (p *power) WebRegisterRoutes(group *echo.Group) {
-	group.POST("poweroff", func(c echo.Context) error {
+	group.GET("/poweroff", func(c echo.Context) error {
 		data := &api.TokenRequest{}
 		if !api.RequestLoader(c, data) {
 			return nil
@@ -40,7 +40,7 @@ func (p *power) WebRegisterRoutes(group *echo.Group) {
 		}
 		return nil
 	})
-	group.POST("/reboot", func(c echo.Context) error {
+	group.GET("/reboot", func(c echo.Context) error {
 		data := &api.TokenRequest{}
 		if !api.RequestLoader(c, data) {
 			return nil
