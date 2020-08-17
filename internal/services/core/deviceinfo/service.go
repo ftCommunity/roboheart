@@ -6,6 +6,7 @@ import (
 	"github.com/ftCommunity/roboheart/internal/services/core/web"
 	"github.com/ftCommunity/roboheart/package/filehelpers"
 	"github.com/ftCommunity/roboheart/package/servicehelpers"
+	"syscall"
 )
 
 type deviceinfo struct {
@@ -24,10 +25,11 @@ func (d *deviceinfo) Init(services map[string]service.Service, _ service.LoggerF
 		e(err)
 	}
 	var err error
-	d.platform, err = filehelpers.ReadFirstLineString(d.fs, platformpath)
-	if err != nil {
+	var uname syscall.Utsname
+	if err = syscall.Uname(&uname); err != nil {
 		e(err)
 	}
+	d.platform = charsToString(uname.Machine)
 	d.device, err = filehelpers.ReadFirstLineString(d.fs, devicepath)
 	if err != nil {
 		e(err)
