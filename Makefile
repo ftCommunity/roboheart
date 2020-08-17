@@ -19,7 +19,7 @@ clean:
 	rm -rf output
 
 
-.PHONY: checkdpes
+.PHONY: checkdeps
 checkdeps:
 	go run cmd/checkdeps/*.go
 
