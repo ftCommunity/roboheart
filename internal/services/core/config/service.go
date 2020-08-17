@@ -26,7 +26,7 @@ func (c *config) Init(services map[string]service.Service, logger service.Logger
 	if err := servicehelpers.InitializeDependencies(services, servicehelpers.ServiceInitializers{"filesystem": c.initSvcFileSystem}); err != nil {
 		e(err)
 	}
-	c.tree = uci.NewTreeFromFs(afero.NewBasePathFs(nil, configPATH))
+	c.tree = uci.NewTreeFromFs(afero.NewBasePathFs(c.fs, configPATH))
 	c.tm = threadmanager.NewThreadManager(c.logger, c.error)
 	c.tm.Load("commit", c.configCommitThread)
 	c.tm.Start("commit")
