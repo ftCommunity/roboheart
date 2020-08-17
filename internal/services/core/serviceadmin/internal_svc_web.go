@@ -23,13 +23,13 @@ func (s *serviceadmin) deinitSvcWeb() {
 
 func (s *serviceadmin) WebRegisterRoutes(group *echo.Group) {
 	group.GET("/services", func(c echo.Context) error {
-		api.CheckACMAPICall(c,s.acm, READ_PERM, func() {
+		api.CheckACMAPICall(c, s.acm, READ_PERM, func() {
 			api.ResponseWriter(c, s.manager.GetServicesInfo())
 		})
 		return nil
 	})
 	group.GET("/service/:sn", func(c echo.Context) error {
-		api.CheckACMAPICall(c,s.acm, READ_PERM, func() {
+		api.CheckACMAPICall(c, s.acm, READ_PERM, func() {
 			if info, err := s.manager.GetServiceInfo(c.Param("sn")); err != nil {
 				api.ErrorResponseWriter(c, 404, err)
 			} else {

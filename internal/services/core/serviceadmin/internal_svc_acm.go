@@ -13,6 +13,6 @@ func (s *serviceadmin) initSvcAcm(svc service.Service) error {
 	if !ok {
 		return errors.New("Type assertion error")
 	}
-	s.acm.RegisterPermission(READ_PERM, map[string]bool{"user":true,"app":false}, map[string]string{})
+	s.acm.RegisterPermission(READ_PERM, map[string]bool{"user": true, "app": false}, map[string]string{})
 	return nil
 }
