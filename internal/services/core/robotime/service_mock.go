@@ -1,6 +1,7 @@
 package robotime
 
 import (
+	"github.com/ftCommunity/roboheart/internal/service"
 	"sync"
 	"time"
 )
@@ -11,8 +12,15 @@ type RoboTimeMock struct {
 	timerlock sync.Mutex
 }
 
+func (r RoboTimeMock) Init(_ map[string]service.Service, _ service.LoggerFunc, _ service.ErrorFunc) {}
 
-func (r RoboTimeMock) Now() time.Time {
+func (r RoboTimeMock) Name() string {
+	return "robotime"
+}
+
+func (r RoboTimeMock) Stop() {}
+
+func (r *RoboTimeMock) Now() time.Time {
 	return r.cTime
 }
 
