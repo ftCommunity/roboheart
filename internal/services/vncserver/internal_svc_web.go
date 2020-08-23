@@ -19,6 +19,7 @@ func (v *vncserver) initSvcWeb(svc service.Service) {
 
 func (v *vncserver) deinitSvcWeb() {
 	v.web.UnregisterServiceAPI(v)
+	v.web = nil
 }
 
 func (v *vncserver) WebRegisterRoutes(group *echo.Group) {

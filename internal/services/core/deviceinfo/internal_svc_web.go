@@ -19,6 +19,7 @@ func (d *deviceinfo) initSvcWeb(svc service.Service) {
 
 func (d *deviceinfo) deinitSvcWeb() {
 	d.web.UnregisterServiceAPI(d)
+	d.web = nil
 }
 
 func (d *deviceinfo) WebRegisterRoutes(group *echo.Group) {

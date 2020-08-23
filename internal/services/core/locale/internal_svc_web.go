@@ -19,6 +19,7 @@ func (l *locale) initSvcWeb(svc service.Service) {
 
 func (l *locale) deinitSvcWeb() {
 	l.web.UnregisterServiceAPI(l)
+	l.web = nil
 }
 
 func (l *locale) WebRegisterRoutes(group *echo.Group) {

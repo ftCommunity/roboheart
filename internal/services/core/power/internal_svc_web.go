@@ -21,6 +21,7 @@ func (p *power) initSvcWeb(svc service.Service) {
 
 func (p *power) deinitSvcWeb() {
 	p.web.UnregisterServiceAPI(p)
+	p.web = nil
 }
 
 func (p *power) WebRegisterRoutes(group *echo.Group) {
