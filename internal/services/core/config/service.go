@@ -4,6 +4,7 @@ import (
 	"github.com/digineo/go-uci"
 	"github.com/ftCommunity/roboheart/internal/service"
 	"github.com/ftCommunity/roboheart/internal/services/core/filesystem"
+	"github.com/ftCommunity/roboheart/internal/services/core/robotime"
 	"github.com/ftCommunity/roboheart/package/servicehelpers"
 	"github.com/ftCommunity/roboheart/package/threadmanager"
 	"github.com/spf13/afero"
@@ -15,6 +16,7 @@ type config struct {
 	tree   uci.Tree
 	tm     *threadmanager.ThreadManager
 	fs     filesystem.FileSystem
+	rt robotime.RoboTime
 }
 
 func (c *config) Init(services map[string]service.Service, logger service.LoggerFunc, e service.ErrorFunc) {
@@ -23,7 +25,7 @@ func (c *config) Init(services map[string]service.Service, logger service.Logger
 	if err := servicehelpers.CheckMainDependencies(c, services); err != nil {
 		e(err)
 	}
-	if err := servicehelpers.InitializeDependencies(services, servicehelpers.ServiceInitializers{"filesystem": c.initSvcFileSystem}); err != nil {
+	if err := servicehelpers.InitializeDependencies(services, servicehelpers.ServiceInitializers{"filesystem": c.initSvcFileSystem, "robotime":c.initSvcRoboTime}); err != nil {
 		e(err)
 	}
 	c.tree = uci.NewTreeFromFs(afero.NewBasePathFs(c.fs, configPATH))
@@ -42,7 +44,7 @@ func (c *config) Stop() {
 func (c *config) Name() string { return "config" }
 
 func (c *config) Dependencies() service.ServiceDependencies {
-	return service.ServiceDependencies{Deps: []string{"filesystem"}, ADeps: []string{}}
+	return service.ServiceDependencies{Deps: []string{"filesystem","robotime"}, ADeps: []string{}}
 }
 
 func (c *config) commit() error {

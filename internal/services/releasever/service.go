@@ -3,6 +3,7 @@ package relver
 import (
 	"context"
 	"errors"
+	"github.com/ftCommunity/roboheart/internal/services/core/robotime"
 	"strings"
 	"sync"
 	"time"
@@ -27,6 +28,7 @@ type relver struct {
 	tm                  *threadmanager.ThreadManager
 	acm                 acm.ACM
 	web                 web.Web
+	rt robotime.RoboTime
 }
 
 func (r *relver) Init(services map[string]service.Service, logger service.LoggerFunc, e service.ErrorFunc) {
@@ -35,7 +37,7 @@ func (r *relver) Init(services map[string]service.Service, logger service.Logger
 	if err := servicehelpers.CheckMainDependencies(r, services); err != nil {
 		e(err)
 	}
-	if err := servicehelpers.InitializeDependencies(services, servicehelpers.ServiceInitializers{"acm": r.initSvcAcm}); err != nil {
+	if err := servicehelpers.InitializeDependencies(services, servicehelpers.ServiceInitializers{"acm": r.initSvcAcm, "robotime":r.initSvcRoboTime}); err != nil {
 		e(err)
 	}
 	r.gh = github.NewClient(nil)
@@ -50,7 +52,7 @@ func (r *relver) Stop() {
 
 func (r *relver) Name() string { return "relver" }
 func (r *relver) Dependencies() service.ServiceDependencies {
-	return service.ServiceDependencies{Deps: []string{"acm"}, ADeps: []string{"web"}}
+	return service.ServiceDependencies{Deps: []string{"acm","robotime"}, ADeps: []string{"web"}}
 }
 func (r *relver) SetAdditionalDependencies(services map[string]service.Service) {
 	servicehelpers.InitializeAdditionalDependencies(services, servicehelpers.AdditionalServiceInitializers{"web": r.initSvcWeb})

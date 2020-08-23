@@ -17,7 +17,7 @@ func (r *relver) updateThread(logger service.LoggerFunc, e service.ErrorFunc, st
 				stopped <- struct{}{}
 				return
 			}
-		case <-time.After(15 * time.Minute):
+		case <-r.rt.After(15 * time.Minute):
 			{
 				if err := r.getReleaseData(); err != nil {
 					logger(err)

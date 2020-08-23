@@ -25,7 +25,7 @@ func (t *token) GetPermission(name string) (bool, error) {
 }
 
 func (t *token) CheckValid() bool {
-	if time.Now().Sub(t.lastrefresh) > t.refeshlifetime {
+	if t.acm.rt.Now().Sub(t.lastrefresh) > t.refeshlifetime {
 		return false
 	}
 	return true
@@ -57,4 +57,4 @@ func (t *token) makeSub() string {
 	return s
 }
 
-func (t *token) Refresh() { t.lastrefresh = time.Now() }
+func (t *token) Refresh() { t.lastrefresh = t.acm.rt.Now() }

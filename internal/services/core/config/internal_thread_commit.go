@@ -14,7 +14,7 @@ func (c *config) configCommitThread(logger service.LoggerFunc, e service.ErrorFu
 				stopped <- struct{}{}
 				return
 			}
-		case <-time.After(5 * time.Second):
+		case <-c.rt.After(5 * time.Second):
 			{
 				if err := c.commit(); err != nil {
 					e(err)

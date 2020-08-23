@@ -2,6 +2,8 @@ package acm
 
 import (
 	"errors"
+	"github.com/ftCommunity/roboheart/internal/services/core/robotime"
+	"github.com/ftCommunity/roboheart/package/servicehelpers"
 	"time"
 
 	"github.com/google/uuid"
@@ -13,15 +15,22 @@ import (
 type acm struct {
 	logger      service.LoggerFunc
 	error       service.ErrorFunc
+	rt robotime.RoboTime
 	permissions map[string]map[string]string
 	defaults    map[string]*map[string]bool
 	tokens      map[string]*token
 	tm          *threadmanager.ThreadManager
 }
 
-func (a *acm) Init(_ map[string]service.Service, logger service.LoggerFunc, e service.ErrorFunc) {
+func (a *acm) Init(services map[string]service.Service, logger service.LoggerFunc, e service.ErrorFunc) {
 	a.logger = logger
 	a.error = e
+	if err := servicehelpers.CheckMainDependencies(a, services); err != nil {
+		e(err)
+	}
+	if err := servicehelpers.InitializeDependencies(services, servicehelpers.ServiceInitializers{"robotime": a.initSvcRoboTime}); err != nil {
+		e(err)
+	}
 	a.permissions = make(map[string]map[string]string)
 	a.defaults = make(map[string]*map[string]bool)
 	for _, d := range DEFAULTS {
@@ -35,6 +44,11 @@ func (a *acm) Init(_ map[string]service.Service, logger service.LoggerFunc, e se
 
 func (a *acm) Stop()        { a.tm.StopAll() }
 func (a *acm) Name() string { return "acm" }
+func (a *acm) Dependencies() service.ServiceDependencies {
+	return service.ServiceDependencies{
+		Deps: []string{"robotime"},
+	}
+}
 
 func (a *acm) cleanupThread(_ service.LoggerFunc, _ service.ErrorFunc, stop, stopped chan interface{}) {
 	for {
@@ -44,7 +58,7 @@ func (a *acm) cleanupThread(_ service.LoggerFunc, _ service.ErrorFunc, stop, sto
 				stopped <- struct{}{}
 				return
 			}
-		case <-time.After(5 * time.Second):
+		case <-a.rt.After(5 * time.Second):
 			{
 				for id, t := range a.tokens {
 					if !t.CheckValid() {
