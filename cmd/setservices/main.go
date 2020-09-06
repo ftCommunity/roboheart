@@ -14,6 +14,17 @@ import (
 func main() {
 	parser := argparse.NewParser("setservices", "Service list definition generator")
 	args := map[string]*bool{}
+	services := make(map[string][4]string)
+	for ip, sp := range serviceproviders {
+		for sn, sd := range sp {
+			if _, ok := services[sn]; ok {
+				panic("Service " + sn + " has already been provided by another service provider")
+			}
+			var fssd [4]string
+			copy(fssd[:],append([]string{ip}, sd[:]...)[:4])
+			services[sn] = fssd
+		}
+	}
 	sns := funk.Keys(services).([]string)
 	sort.Strings(sns)
 	for _, sn := range sns {
@@ -51,8 +62,8 @@ func main() {
 		if !ok {
 			panic("unknown service")
 		}
-		imports = append(imports, "\""+sd[0]+"\"")
-		sl = append(sl, sd[1]+"."+sd[2]+",")
+		imports = append(imports, "\""+sd[0]+"/"+sd[1]+"\"")
+		sl = append(sl, sd[2]+"."+sd[3]+",")
 	}
 
 	var output []string
