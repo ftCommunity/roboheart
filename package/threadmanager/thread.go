@@ -4,7 +4,7 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/ftCommunity/roboheart/internal/service"
+	"github.com/ftCommunity-roboheart/roboheart/package/service"
 )
 
 type threadfunc func(service.LoggerFunc, service.ErrorFunc, chan interface{}, chan interface{})

@@ -2,12 +2,12 @@ package servicemanager
 
 import (
 	"errors"
-	"github.com/ftCommunity/roboheart/internal/services"
+	"github.com/ftCommunity-roboheart/roboheart/internal/services"
 	"log"
 	"strings"
 	"sync"
 
-	"github.com/ftCommunity/roboheart/internal/service"
+	"github.com/ftCommunity-roboheart/roboheart/package/service"
 	"github.com/thoas/go-funk"
 )
 

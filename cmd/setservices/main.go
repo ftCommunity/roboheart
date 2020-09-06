@@ -44,7 +44,7 @@ func main() {
 	}
 	sort.Strings(rsl)
 	var imports []string
-	imports = append(imports, "\"github.com/ftCommunity/roboheart/internal/service\"")
+	imports = append(imports, "\"github.com/ftCommunity-roboheart/roboheart/package/service\"")
 	var sl []string
 	for _, sn := range rsl {
 		sd, ok := services[sn]

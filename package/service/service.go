@@ -1,6 +1,6 @@
 package service
 
-import "github.com/ftCommunity/roboheart/internal/servicemanager/exposedstructs"
+import "github.com/ftCommunity-roboheart/roboheart/internal/servicemanager/exposedstructs"
 
 type Service interface {
 	Init(map[string]Service, LoggerFunc, ErrorFunc)

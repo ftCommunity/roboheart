@@ -2,7 +2,7 @@ package servicemanager
 
 import (
 	"errors"
-	"github.com/ftCommunity/roboheart/internal/servicemanager/exposedstructs"
+	"github.com/ftCommunity-roboheart/roboheart/internal/servicemanager/exposedstructs"
 	"github.com/thoas/go-funk"
 )
 

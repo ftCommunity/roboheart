@@ -1,7 +1,7 @@
 package servicehelpers
 
 import (
-	"github.com/ftCommunity/roboheart/internal/service"
+	"github.com/ftCommunity-roboheart/roboheart/package/service"
 	"github.com/google/uuid"
 	"testing"
 )

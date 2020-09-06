@@ -1,5 +1,5 @@
 # roboheart
-roboheart is the new central daemon for the [ftCommunity Firmware](https://github.com/ftCommunity/ftcommunity-TXT). Its main goal is to provide a central place where all configuration and system access takes place while having a maximum of security by using a strong ACL system.
+roboheart is the new central daemon for the [ftCommunity Firmware](https://github.com/ftCommunity-roboheart/ftcommunity-TXT). Its main goal is to provide a central place where all configuration and system access takes place while having a maximum of security by using a strong ACL system.
 
 ## Usage
 ### Start-up
@@ -10,8 +10,8 @@ roboheart is the new central daemon for the [ftCommunity Firmware](https://githu
 ## Building
 ### Download sources
 ```
-go get github.com/ftCommunity/roboheart
-cd $HOME/go/src/github.com/ftCommunity/roboheart
+go get github.com/ftCommunity-roboheart/roboheart
+cd $HOME/go/src/github.com/ftCommunity-roboheart/roboheart
 go mod vendor
 ```
 

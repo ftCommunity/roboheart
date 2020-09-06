@@ -1,7 +1,7 @@
 package servicemanager
 
 import (
-	"github.com/ftCommunity/roboheart/internal/service"
+	"github.com/ftCommunity-roboheart/roboheart/package/service"
 )
 
 type ServiceState struct {

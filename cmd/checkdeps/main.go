@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/ftCommunity/roboheart/internal/servicemanager"
+	"github.com/ftCommunity-roboheart/roboheart/internal/servicemanager"
 	"log"
 )
 

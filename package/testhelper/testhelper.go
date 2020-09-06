@@ -1,7 +1,7 @@
 package testhelper
 
 import (
-	"github.com/ftCommunity/roboheart/internal/service"
+	"github.com/ftCommunity-roboheart/roboheart/package/service"
 	"testing"
 )
 

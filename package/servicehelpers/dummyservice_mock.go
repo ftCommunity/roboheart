@@ -1,6 +1,6 @@
 package servicehelpers
 
-import "github.com/ftCommunity/roboheart/internal/service"
+import "github.com/ftCommunity-roboheart/roboheart/package/service"
 
 type dummyService struct {
 	deps, adeps []string

@@ -1,34 +1,8 @@
 package services
 
 import (
-	"github.com/ftCommunity/roboheart/internal/service"
-	"github.com/ftCommunity/roboheart/internal/services/core/acm"
-	"github.com/ftCommunity/roboheart/internal/services/core/config"
-	"github.com/ftCommunity/roboheart/internal/services/core/deviceinfo"
-	"github.com/ftCommunity/roboheart/internal/services/core/filesystem"
-	"github.com/ftCommunity/roboheart/internal/services/core/fwver"
-	"github.com/ftCommunity/roboheart/internal/services/core/locale"
-	"github.com/ftCommunity/roboheart/internal/services/core/power"
-	"github.com/ftCommunity/roboheart/internal/services/core/robotime"
-	"github.com/ftCommunity/roboheart/internal/services/core/serviceadmin"
-	"github.com/ftCommunity/roboheart/internal/services/core/web"
-	"github.com/ftCommunity/roboheart/internal/services/pkgmanager"
-	"github.com/ftCommunity/roboheart/internal/services/releasever"
-	"github.com/ftCommunity/roboheart/internal/services/vncserver"
+	"github.com/ftCommunity-roboheart/roboheart/package/service"
 )
 
 var Services = []service.Service{
-	acm.Service,
-	config.Service,
-	deviceinfo.Service,
-	filesystem.Service,
-	fwver.Service,
-	locale.Service,
-	pkgmanager.Service,
-	power.Service,
-	relver.Service,
-	robotime.Service,
-	serviceadmin.Service,
-	vncserver.Service,
-	web.Service,
 }

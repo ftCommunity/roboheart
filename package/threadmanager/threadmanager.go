@@ -4,7 +4,7 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/ftCommunity/roboheart/internal/service"
+	"github.com/ftCommunity-roboheart/roboheart/package/service"
 )
 
 type ThreadManager struct {

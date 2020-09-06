@@ -2,7 +2,7 @@ package packages
 
 import (
 	"github.com/blang/semver"
-	"github.com/ftCommunity/roboheart/package/marshallers"
+	"github.com/ftCommunity-roboheart/roboheart/package/marshallers"
 )
 
 type Package struct {

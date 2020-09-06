@@ -4,7 +4,7 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/ftCommunity/roboheart/internal/service"
+	"github.com/ftCommunity-roboheart/roboheart/package/service"
 )
 
 func checkDependencies(req []string, svcs map[string]service.Service) error {
