@@ -7,9 +7,9 @@ replace github.com/digineo/go-uci => github.com/ftCommunity-roboheart/go-uci v0.
 require (
 	github.com/akamensky/argparse v1.2.2
 	github.com/blang/semver v3.5.1+incompatible
-	github.com/ftCommunity-roboheart/roboheart-svc-releasever v0.0.0-20200906133623-79b2f6c79149
-	github.com/ftCommunity-roboheart/roboheart-svc-vncserver v0.0.0-20200906135251-445e1885fd1e
-	github.com/ftCommunity-roboheart/roboheart-svcs-core v0.0.0-20200906114943-65a04c29b345
+	github.com/ftCommunity-roboheart/roboheart-svc-releasever v0.0.0-20200908214026-d03bf4590559
+	github.com/ftCommunity-roboheart/roboheart-svc-vncserver v0.0.0-20200908214133-01bb4eb27226
+	github.com/ftCommunity-roboheart/roboheart-svcs-core v0.0.0-20200908213713-443ccdccc0ca
 	github.com/google/uuid v1.1.2
 	github.com/labstack/echo/v4 v4.1.17
 	github.com/spf13/afero v1.3.5
