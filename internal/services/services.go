@@ -1,6 +1,8 @@
 package services
 
 import (
+	"github.com/ftCommunity-roboheart/roboheart-svc-releasever/package/services/releasever"
+	"github.com/ftCommunity-roboheart/roboheart-svc-vncserver/package/services/vncserver"
 	"github.com/ftCommunity-roboheart/roboheart-svcs-core/package/services/core/acm"
 	"github.com/ftCommunity-roboheart/roboheart-svcs-core/package/services/core/config"
 	"github.com/ftCommunity-roboheart/roboheart-svcs-core/package/services/core/deviceinfo"
@@ -22,7 +24,9 @@ var Services = []service.Service{
 	fwver.Service,
 	locale.Service,
 	power.Service,
+	relver.Service,
 	robotime.Service,
 	serviceadmin.Service,
+	vncserver.Service,
 	web.Service,
 }
