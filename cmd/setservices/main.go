@@ -21,7 +21,7 @@ func main() {
 				panic("Service " + sn + " has already been provided by another service provider")
 			}
 			var fssd [4]string
-			copy(fssd[:],append([]string{ip}, sd[:]...)[:4])
+			copy(fssd[:], append([]string{ip}, sd[:]...)[:4])
 			services[sn] = fssd
 		}
 	}
