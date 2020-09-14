@@ -13,20 +13,32 @@ import (
 	"github.com/ftCommunity-roboheart/roboheart-svcs-core/package/services/core/robotime"
 	"github.com/ftCommunity-roboheart/roboheart-svcs-core/package/services/core/serviceadmin"
 	"github.com/ftCommunity-roboheart/roboheart-svcs-core/package/services/core/web"
+	"github.com/ftCommunity-roboheart/roboheart-svcs-net/package/services/doh"
+	"github.com/ftCommunity-roboheart/roboheart-svcs-net/package/services/net"
+	"github.com/ftCommunity-roboheart/roboheart-svcs-net/package/services/net-svcs/discovery"
+	"github.com/ftCommunity-roboheart/roboheart-svcs-net/package/services/net-svcs/mesh/alfred"
+	"github.com/ftCommunity-roboheart/roboheart-svcs-net/package/services/net-svcs/mesh/batman"
+	"github.com/ftCommunity-roboheart/roboheart-svcs-net/package/services/net-svcs/mesh/vis"
 	"github.com/ftCommunity-roboheart/roboheart/package/service"
 )
 
 var Services = []service.Service{
 	acm.Service,
+	alfred.Service,
+	batman.Service,
 	config.Service,
 	deviceinfo.Service,
+	discovery.Service,
+	doh.Service,
 	filesystem.Service,
 	fwver.Service,
 	locale.Service,
+	net.Service,
 	power.Service,
 	relver.Service,
 	robotime.Service,
 	serviceadmin.Service,
+	vis.Service,
 	vncserver.Service,
 	web.Service,
 }

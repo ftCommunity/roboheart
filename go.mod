@@ -7,11 +7,14 @@ replace github.com/digineo/go-uci => github.com/ftCommunity-roboheart/go-uci v0.
 require (
 	github.com/akamensky/argparse v1.2.2
 	github.com/blang/semver v3.5.1+incompatible
-	github.com/ftCommunity-roboheart/roboheart-svc-releasever v0.0.0-20200908214026-d03bf4590559
-	github.com/ftCommunity-roboheart/roboheart-svc-vncserver v0.0.0-20200908214133-01bb4eb27226
-	github.com/ftCommunity-roboheart/roboheart-svcs-core v0.0.0-20200908213713-443ccdccc0ca
+	github.com/ftCommunity-roboheart/roboheart-svc-releasever v0.0.0-20200913123916-c95d25e8d587
+	github.com/ftCommunity-roboheart/roboheart-svc-vncserver v0.0.0-20200913123943-a19f7c20f49a
+	github.com/ftCommunity-roboheart/roboheart-svcs-core v0.0.0-20200913204320-443cbad99642
+	github.com/ftCommunity-roboheart/roboheart-svcs-net v0.0.0-20200914194326-a23e763e2c60
 	github.com/google/uuid v1.1.2
 	github.com/labstack/echo/v4 v4.1.17
-	github.com/spf13/afero v1.3.5
+	github.com/spf13/afero v1.4.0
 	github.com/thoas/go-funk v0.7.0
+	golang.org/x/net v0.0.0-20200904194848-62affa334b73 // indirect
+	golang.org/x/sys v0.0.0-20200909081042-eff7692f9009 // indirect
 )
