@@ -10,7 +10,7 @@ require (
 	github.com/ftCommunity-roboheart/roboheart-svc-releasever v0.0.0-20200913123916-c95d25e8d587
 	github.com/ftCommunity-roboheart/roboheart-svc-vncserver v0.0.0-20200913123943-a19f7c20f49a
 	github.com/ftCommunity-roboheart/roboheart-svcs-core v0.0.0-20200913204320-443cbad99642
-	github.com/ftCommunity-roboheart/roboheart-svcs-net v0.0.0-20200914194326-a23e763e2c60
+	github.com/ftCommunity-roboheart/roboheart-svcs-net v0.0.0-20200914195141-0bd31583dae9
 	github.com/google/uuid v1.1.2
 	github.com/labstack/echo/v4 v4.1.17
 	github.com/spf13/afero v1.4.0
