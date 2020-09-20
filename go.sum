@@ -17,16 +17,13 @@ github.com/ftCommunity-roboheart/roboheart-svc-vncserver v0.0.0-20200908214133-0
 github.com/ftCommunity-roboheart/roboheart-svc-vncserver v0.0.0-20200908214133-01bb4eb27226/go.mod h1:Ggd7/mzo/cgdicD5NZSZmtDn4ljBV7BF7lCt5aam89U=
 github.com/ftCommunity-roboheart/roboheart-svc-vncserver v0.0.0-20200913123943-a19f7c20f49a h1:wN9t7Uw6H1yTzMsp8A/7GmVOg3iBSTuKxVj9r1eSclY=
 github.com/ftCommunity-roboheart/roboheart-svc-vncserver v0.0.0-20200913123943-a19f7c20f49a/go.mod h1:Ggd7/mzo/cgdicD5NZSZmtDn4ljBV7BF7lCt5aam89U=
-github.com/ftCommunity-roboheart/roboheart-svcs-core v0.0.0-20200906114943-65a04c29b345 h1:z+5YJMF1b3b3QRhCwOQ6EL2ew4uqMRMrQCvA1w7XN9k=
 github.com/ftCommunity-roboheart/roboheart-svcs-core v0.0.0-20200906114943-65a04c29b345/go.mod h1:+jbakPH7LWxYsUgGAgJOv3yS5hOkKUsfc1VaH5MEWfU=
-github.com/ftCommunity-roboheart/roboheart-svcs-core v0.0.0-20200908213713-443ccdccc0ca h1:Fkypm53w0dMQUTf34zrZXDzgDg7dX9J9WhvihoXB1lQ=
 github.com/ftCommunity-roboheart/roboheart-svcs-core v0.0.0-20200908213713-443ccdccc0ca/go.mod h1:+jbakPH7LWxYsUgGAgJOv3yS5hOkKUsfc1VaH5MEWfU=
-github.com/ftCommunity-roboheart/roboheart-svcs-core v0.0.0-20200913204320-443cbad99642 h1:Hl8A/hrsIwNufIfs9AYznOleGzmUUrpcfI8Ak5XJnws=
 github.com/ftCommunity-roboheart/roboheart-svcs-core v0.0.0-20200913204320-443cbad99642/go.mod h1:+jbakPH7LWxYsUgGAgJOv3yS5hOkKUsfc1VaH5MEWfU=
 github.com/ftCommunity-roboheart/roboheart-svcs-core v0.0.0-20200919215026-5e786780b496 h1:vBAaZ0N9UwCBT0DWqgE8ZX4GiVpGRRLW9lDsGJlcHuw=
 github.com/ftCommunity-roboheart/roboheart-svcs-core v0.0.0-20200919215026-5e786780b496/go.mod h1:+jbakPH7LWxYsUgGAgJOv3yS5hOkKUsfc1VaH5MEWfU=
-github.com/ftCommunity-roboheart/roboheart-svcs-net v0.0.0-20200920064744-a40c31aa904b h1:kjBVLTym0XcgOv9FS+02bgmL4HYPSYwyUyFRc3HY7FU=
-github.com/ftCommunity-roboheart/roboheart-svcs-net v0.0.0-20200920064744-a40c31aa904b/go.mod h1:byZ+HxF9spWkW77bs/Ax8bXMNwC1IZbY01PsJbzYuqY=
+github.com/ftCommunity-roboheart/roboheart-svcs-net v0.0.0-20200920103103-d90f840e02e0 h1:prB4WwjfUSVaJwR0m4WtvIYPwd5Lt+G3cGK5D1+JSBk=
+github.com/ftCommunity-roboheart/roboheart-svcs-net v0.0.0-20200920103103-d90f840e02e0/go.mod h1:+kfmQV+Fy4ZFq6SpLdoxI9ss3GnJ1JL4P2YwEvaod2Y=
 github.com/golang/protobuf v1.3.2/go.mod h1:6lQm79b+lXiMfvg/cZm0SGofjICqVBUtrP5yJMmIC1U=
 github.com/google/go-github/v31 v31.0.0/go.mod h1:NQPZol8/1sMoWYGN2yaALIBytu17gAWfhbweiEed3pM=
 github.com/google/go-querystring v1.0.0/go.mod h1:odCYkC5MyYFN7vkCjXpyrEuKhc/BUO6wN/zVPAxq5ck=
@@ -42,8 +39,6 @@ github.com/mattn/go-colorable v0.1.7/go.mod h1:u6P/XSegPjTcexA+o6vUJrdnUu04hMope
 github.com/mattn/go-isatty v0.0.8/go.mod h1:Iq45c/XA43vh69/j3iqttzPXn0bhXyGjM0Hdxcsrc5s=
 github.com/mattn/go-isatty v0.0.9/go.mod h1:YNRxwqDuOph6SZLI9vUUz6OYw3QyUt7WiY2yME+cCiQ=
 github.com/mattn/go-isatty v0.0.12/go.mod h1:cbi8OIDigv2wuxKPP5vlRcQ1OAZbq2CE4Kysco4FUpU=
-github.com/paultag/go-modprobe v0.0.0-20180523225901-7ccf6a1b5271 h1:e30yoZNGiwZszhX/zRYOOc56xHpsZFUC7CeBhcmmivM=
-github.com/paultag/go-modprobe v0.0.0-20180523225901-7ccf6a1b5271/go.mod h1:8kv7zKfUEDKENYA4Wk+cT1bxjXaEiuYisqjRZGGNI84=
 github.com/pkg/errors v0.8.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pkg/sftp v1.10.1/go.mod h1:lYOWFsE0bwd1+KfKJaKeuokY15vzFx25BLbzYYoAxZI=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
@@ -93,5 +88,3 @@ golang.org/x/tools v0.0.0-20180917221912-90fa682c2a6e/go.mod h1:n7NCudcB/nEzxVGm
 google.golang.org/appengine v1.1.0/go.mod h1:EbEs0AVv82hx2wNQdGPgUI5lhzA/G0D9YwlJXL52JkM=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/yaml.v2 v2.2.2/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=
-pault.ag/go/topsort v0.0.0-20160530003732-f98d2ad46e1a h1:WwS7vlB5H2AtwKj1jsGwp2ZLud1x6WXRXh2fXsRqrcA=
-pault.ag/go/topsort v0.0.0-20160530003732-f98d2ad46e1a/go.mod h1:INqx0ClF7kmPAMk2zVTX8DRnhZ/yaA/Mg52g8KFKE7k=
