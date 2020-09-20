@@ -22,8 +22,8 @@ github.com/ftCommunity-roboheart/roboheart-svcs-core v0.0.0-20200908213713-443cc
 github.com/ftCommunity-roboheart/roboheart-svcs-core v0.0.0-20200913204320-443cbad99642/go.mod h1:+jbakPH7LWxYsUgGAgJOv3yS5hOkKUsfc1VaH5MEWfU=
 github.com/ftCommunity-roboheart/roboheart-svcs-core v0.0.0-20200919215026-5e786780b496 h1:vBAaZ0N9UwCBT0DWqgE8ZX4GiVpGRRLW9lDsGJlcHuw=
 github.com/ftCommunity-roboheart/roboheart-svcs-core v0.0.0-20200919215026-5e786780b496/go.mod h1:+jbakPH7LWxYsUgGAgJOv3yS5hOkKUsfc1VaH5MEWfU=
-github.com/ftCommunity-roboheart/roboheart-svcs-net v0.0.0-20200920103103-d90f840e02e0 h1:prB4WwjfUSVaJwR0m4WtvIYPwd5Lt+G3cGK5D1+JSBk=
-github.com/ftCommunity-roboheart/roboheart-svcs-net v0.0.0-20200920103103-d90f840e02e0/go.mod h1:+kfmQV+Fy4ZFq6SpLdoxI9ss3GnJ1JL4P2YwEvaod2Y=
+github.com/ftCommunity-roboheart/roboheart-svcs-net v0.0.0-20200920200132-843be3b3d22d h1:XcbeVT8VUY/SqEHDs1mAGznWIHxEG/VQUpzVEZfSKB8=
+github.com/ftCommunity-roboheart/roboheart-svcs-net v0.0.0-20200920200132-843be3b3d22d/go.mod h1:+kfmQV+Fy4ZFq6SpLdoxI9ss3GnJ1JL4P2YwEvaod2Y=
 github.com/golang/protobuf v1.3.2/go.mod h1:6lQm79b+lXiMfvg/cZm0SGofjICqVBUtrP5yJMmIC1U=
 github.com/google/go-github/v31 v31.0.0/go.mod h1:NQPZol8/1sMoWYGN2yaALIBytu17gAWfhbweiEed3pM=
 github.com/google/go-querystring v1.0.0/go.mod h1:odCYkC5MyYFN7vkCjXpyrEuKhc/BUO6wN/zVPAxq5ck=
