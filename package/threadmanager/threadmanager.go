@@ -85,7 +85,7 @@ func (tm *ThreadManager) genThreadLogger(tn string) service.LoggerFunc {
 
 func (tm *ThreadManager) genThreadError(tn string) service.ErrorFunc {
 	return func(v ...interface{}) {
-		tm.error(append([]interface{}{"Thread: ", tn + ": "}, v...)...)
+		tm.error(append([]interface{}{"Thread:", tn + ":"}, v...)...)
 	}
 }
 
