@@ -25,6 +25,7 @@ type ProcRunner struct {
 	stdin         io.WriteCloser
 	stdout        io.ReadCloser
 	stderr        io.ReadCloser
+	killing       bool
 }
 
 func (p *ProcRunner) Start() error {
@@ -61,6 +62,7 @@ func (p *ProcRunner) Stop() error {
 	if p.proc == nil {
 		return errNoProcess
 	}
+	p.killing = true
 	p.proc.Process.Kill()
 	p.proc = nil
 	return nil
@@ -90,6 +92,10 @@ func (p *ProcRunner) handleEnd() {
 				code = status.ExitStatus()
 			}
 		}
+	}
+	if p.killing {
+		p.killing = false
+		return
 	}
 	p.proclock.Lock()
 	if p.proc == nil {
