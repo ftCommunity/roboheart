@@ -3,6 +3,7 @@ package servicemanager
 import (
 	"errors"
 	"github.com/ftCommunity-roboheart/roboheart/internal/services"
+	"github.com/ftCommunity-roboheart/roboheart/package/manifest"
 	"github.com/thoas/go-funk"
 	"log"
 	"sync"
@@ -22,13 +23,6 @@ type ServiceManager struct {
 }
 
 func (sm *ServiceManager) Init() {
-	for _, ss := range sm.services {
-		for _, suid := range ss.GetStartup() {
-			if err := sm.newInstance(suid); err != nil {
-				log.Fatal(err)
-			}
-		}
-	}
 	sm.wg.Add(1)
 	go sm.worker()
 	go sm.triggerWorker()
@@ -128,16 +122,30 @@ func (sm *ServiceManager) get(id instance.ID) *InstanceState {
 	}
 }
 
+func (sm *ServiceManager) loadService(m manifest.ServiceManifest, builtin bool) error {
+	sm.serviceslock.Lock()
+	defer sm.serviceslock.Unlock()
+	if _, ok := sm.services[m.Name]; ok {
+		return errors.New("Service " + m.Name + " loaded twice")
+	}
+	sm.services[m.Name] = newServiceState(m, builtin)
+	for _, suid := range sm.services[m.Name].GetStartup() {
+		if err := sm.newInstance(suid); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func NewServiceManager() (*ServiceManager, error) {
 	//create ServiceManager amd initialize it
 	sm := new(ServiceManager)
 	sm.services = make(map[string]*ServiceState)
 	//add services
 	for _, m := range services.Services {
-		if _, ok := sm.services[m.Name]; ok {
-			return nil, errors.New("Service " + m.Name + " loaded twice")
+		if err := sm.loadService(m, true); err != nil {
+			return nil, err
 		}
-		sm.services[m.Name] = newServiceStateBuiltin(m)
 	}
 	sm.exposed = newExposed(sm)
 	sm.workercheck = make(chan interface{})

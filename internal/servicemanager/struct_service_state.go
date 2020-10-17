@@ -36,9 +36,10 @@ func (ss *ServiceState) get(id instance.ID) *InstanceState {
 	}
 }
 
-func newServiceStateBuiltin(m manifest.ServiceManifest) *ServiceState {
+func newServiceState(m manifest.ServiceManifest, builtin bool) *ServiceState {
 	ss := new(ServiceState)
 	ss.ServiceManifest = m
 	ss.instances = make(map[string]*InstanceState)
+	ss.builtin = builtin
 	return ss
 }
