@@ -2,17 +2,16 @@ package threadmanager
 
 import (
 	"errors"
+	"github.com/ftCommunity-roboheart/roboheart/package/instance"
 	"sync"
-
-	"github.com/ftCommunity-roboheart/roboheart/package/service"
 )
 
 type ThreadManager struct {
 	threads  map[string]*thread
 	lock     sync.Mutex
 	lockdown bool
-	logger   service.LoggerFunc
-	error    service.ErrorFunc
+	logger   instance.LoggerFunc
+	error    instance.ErrorFunc
 }
 
 func (tm *ThreadManager) Load(id string, f threadfunc) error {
@@ -77,19 +76,19 @@ func (tm *ThreadManager) StopAll() {
 	wg.Wait()
 }
 
-func (tm *ThreadManager) genThreadLogger(tn string) service.LoggerFunc {
+func (tm *ThreadManager) genThreadLogger(tn string) instance.LoggerFunc {
 	return func(v ...interface{}) {
 		tm.logger(append([]interface{}{"Thread:", tn + ":"}, v...)...)
 	}
 }
 
-func (tm *ThreadManager) genThreadError(tn string) service.ErrorFunc {
+func (tm *ThreadManager) genThreadError(tn string) instance.ErrorFunc {
 	return func(v ...interface{}) {
 		tm.error(append([]interface{}{"Thread:", tn + ":"}, v...)...)
 	}
 }
 
-func NewThreadManager(logger service.LoggerFunc, e service.ErrorFunc) *ThreadManager {
+func NewThreadManager(logger instance.LoggerFunc, e instance.ErrorFunc) *ThreadManager {
 	tm := new(ThreadManager)
 	tm.threads = make(map[string]*thread)
 	tm.logger = logger

@@ -3,6 +3,7 @@ package procrunner
 import (
 	"errors"
 	"io"
+	"log"
 	"os/exec"
 	"sync"
 	"syscall"
@@ -63,8 +64,8 @@ func (p *ProcRunner) Stop() error {
 		return errNoProcess
 	}
 	p.killing = true
+	log.Println("PROC KILLING SET", p.name)
 	p.proc.Process.Kill()
-	p.proc = nil
 	return nil
 }
 
@@ -85,6 +86,7 @@ func (p *ProcRunner) UnsetEndCallback() {
 }
 
 func (p *ProcRunner) handleEnd() {
+	log.Println("PROC HANDLE END", p.name)
 	code := 0
 	if err := p.proc.Wait(); err != nil {
 		if exiterr, ok := err.(*exec.ExitError); ok {
@@ -94,7 +96,9 @@ func (p *ProcRunner) handleEnd() {
 		}
 	}
 	if p.killing {
+		p.proc = nil
 		p.killing = false
+		log.Println("PROC KILLED!!!", p.name)
 		return
 	}
 	p.proclock.Lock()

@@ -2,17 +2,16 @@ package threadmanager
 
 import (
 	"errors"
+	"github.com/ftCommunity-roboheart/roboheart/package/instance"
 	"sync"
-
-	"github.com/ftCommunity-roboheart/roboheart/package/service"
 )
 
-type threadfunc func(service.LoggerFunc, service.ErrorFunc, chan interface{}, chan interface{})
+type threadfunc func(instance.LoggerFunc, instance.ErrorFunc, chan interface{}, chan interface{})
 
 type thread struct {
 	stopc, stopped chan interface{}
-	logger         service.LoggerFunc
-	error          service.ErrorFunc
+	logger         instance.LoggerFunc
+	error          instance.ErrorFunc
 	state          bool
 	lock           sync.Mutex
 	f              threadfunc
@@ -57,7 +56,7 @@ func (t *thread) call() {
 	t.logger("Started")
 }
 
-func newThread(f threadfunc, logger service.LoggerFunc, e service.ErrorFunc) *thread {
+func newThread(f threadfunc, logger instance.LoggerFunc, e instance.ErrorFunc) *thread {
 	t := new(thread)
 	t.f = f
 	t.logger = logger

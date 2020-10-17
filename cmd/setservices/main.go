@@ -18,7 +18,7 @@ func main() {
 	for ip, sp := range serviceproviders {
 		for sn, sd := range sp {
 			if _, ok := services[sn]; ok {
-				panic("Service " + sn + " has already been provided by another service provider")
+				panic("Service " + sn + " has already been provided by another instance provider")
 			}
 			var fssd [4]string
 			copy(fssd[:], append([]string{ip}, sd[:]...)[:4])
@@ -30,7 +30,7 @@ func main() {
 	for _, sn := range sns {
 		args[sn] = parser.Flag("", sn, &argparse.Options{
 			Required: false,
-			Help:     "Enable service " + sn,
+			Help:     "Enable instance " + sn,
 			Default:  false,
 		})
 	}
@@ -55,12 +55,12 @@ func main() {
 	}
 	sort.Strings(rsl)
 	var imports []string
-	imports = append(imports, "\"github.com/ftCommunity-roboheart/roboheart/package/service\"")
+	imports = append(imports, "\"github.com/ftCommunity-roboheart/roboheart/package/instance\"")
 	var sl []string
 	for _, sn := range rsl {
 		sd, ok := services[sn]
 		if !ok {
-			panic("unknown service")
+			panic("unknown instance")
 		}
 		imports = append(imports, "\""+sd[0]+"/"+sd[1]+"\"")
 		sl = append(sl, sd[2]+"."+sd[3]+",")
@@ -71,7 +71,7 @@ func main() {
 	output = append(output, "import (")
 	output = append(output, imports...)
 	output = append(output, ")", "")
-	output = append(output, "var Services = []service.Service{")
+	output = append(output, "var Services = []instance.Service{")
 	output = append(output, sl...)
 	output = append(output, "}")
 	code, err := format.Source([]byte(strings.Join(output, "\n")))

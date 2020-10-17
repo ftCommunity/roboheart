@@ -3,150 +3,129 @@ package servicemanager
 import (
 	"errors"
 	"github.com/ftCommunity-roboheart/roboheart/internal/services"
+	"github.com/thoas/go-funk"
 	"log"
-	"strings"
 	"sync"
 
-	"github.com/ftCommunity-roboheart/roboheart/package/service"
-	"github.com/thoas/go-funk"
+	"github.com/ftCommunity-roboheart/roboheart/package/instance"
 )
 
 type ServiceManager struct {
-	services map[string]*ServiceState
-	exposed  *exposed
+	services       map[string]*ServiceState
+	exposed        *exposed
+	wg             sync.WaitGroup
+	workercall     bool
+	workerstop     bool
+	workercheck    chan interface{}
+	workercalllock sync.Mutex
+	serviceslock   sync.Mutex
 }
 
 func (sm *ServiceManager) Init() {
-	good := false
-	for !good {
-		good = true
-		for _, ss := range sm.services {
-			ok := ss.tryRun()
-			if ok {
-				if !ss.setReadyAdeps() {
-					good = false
-				}
-			} else {
-				good = false
+	for _, ss := range sm.services {
+		for _, suid := range ss.GetStartup() {
+			if err := sm.newInstance(suid); err != nil {
+				log.Fatal(err)
 			}
 		}
 	}
+	sm.wg.Add(1)
+	go sm.worker()
+	go sm.triggerWorker()
 }
 
 func (sm *ServiceManager) Stop() {
-	good := false
-	for !good {
-		good = true
-		for _, ss := range sm.services {
-			ok := ss.tryStop()
-			if !ok {
-				good = false
-			}
-		}
-	}
-}
-
-func (sm *ServiceManager) emergencyStop() {
-	var wg sync.WaitGroup
+	sm.stopWorker()
+	sm.wg.Wait()
+	// we are missing many steps here...
+	// but!
+	// we do not need them!
+	// after the action everything is clear!
 	for _, ss := range sm.services {
-		wg.Add(1)
-		go func(s *ServiceState) {
-			s.emerstop()
-			wg.Done()
-		}(ss)
+		for _, si := range ss.instances {
+			for _, rd := range *si.deps.rdeps {
+				sm.get(rd).instance.depending.UnsetDependency(si.id)
+			}
+			si.getBase().Stop()
+			delete(ss.instances, si.id.Instance)
+		}
 	}
-	wg.Wait()
 }
 
-func (sm *ServiceManager) genServiceLogger(sn string) service.LoggerFunc {
+func (sm *ServiceManager) newInstance(id instance.ID) error {
+	var ss *ServiceState
+	if ss, _ := sm.services[id.Name]; ss == nil {
+		return errors.New("Service " + id.Name + " is unknown")
+	}
+	if //goland:noinspection GoNilness
+	err := ss.init(id); err != nil {
+		log.Fatal(err)
+	}
+	//goland:noinspection GoNilness
+	si := ss.get(id)
+	si.load()
+	if mi := si.instance.managing; mi != nil {
+		mi.SetServiceManager(sm.exposed)
+	}
+	if di := si.instance.depending; di != nil {
+		di.SetServiceListGetter(sm.getServiceList)
+	}
+	return nil
+}
+
+func (sm *ServiceManager) getServiceList() []string {
+	return funk.Keys(sm.services).([]string)
+}
+
+func (sm *ServiceManager) genServiceLogger(id instance.ID) instance.LoggerFunc {
+	var sn string
+	if id.Instance == NON_INSTANCE_NAME {
+		sn = id.Name
+	} else {
+		sn = id.Name + "." + id.Instance
+	}
+	sn = "\"" + sn + "\""
 	return func(v ...interface{}) {
-		log.Println(append([]interface{}{"Service:", sn + ":"}, v...)...)
+		log.Println(append([]interface{}{"Log from instance", sn + ":"}, v...)...)
 	}
 }
 
-func (sm *ServiceManager) genServiceError(sn string) service.ErrorFunc {
+func (sm *ServiceManager) genServiceError(id instance.ID) instance.ErrorFunc {
+	var sn string
+	if id.Instance == NON_INSTANCE_NAME {
+		sn = id.Name
+	} else {
+		sn = id.Name + "." + id.Instance
+	}
+	sn = "\"" + sn + "\""
 	return func(v ...interface{}) {
-		log.Println(append([]interface{}{"Service error:", sn + ":"}, v...)...)
-		log.Println("Emergency stop for all services")
-		sm.emergencyStop()
-		log.Fatal("Stopped after previous error in service " + sn)
+		log.Println(append([]interface{}{"Error on instance", sn + ":"}, v...)...)
+		sm.serviceslock.Lock()
+		defer sm.serviceslock.Unlock()
+		ss := sm.get(id)
+		if fs := ss.instance.forcestop; fs != nil {
+			fs.ForceStop()
+		}
+		ss.running = false
+		for _, rd := range *ss.deps.rdeps {
+			sm.get(rd).instance.depending.UnsetDependency(id)
+			ss.deps.rdeps.Delete(rd)
+			sm.get(rd).deps.deps.Delete(id)
+		}
+		for _, d := range *ss.deps.deps {
+			// no unset needed because instance is stopped
+			ss.deps.deps.Delete(d)
+			sm.get(d).deps.rdeps.Delete(id)
+		}
 	}
 }
 
-func (sm *ServiceManager) getServiceDependencies(sn string) map[string]service.Service {
-	dep := make(map[string]service.Service)
-	if ds := sm.services[sn].service.depending; ds != nil {
-		for _, d := range sm.services[sn].deps.Deps {
-			dep[d] = sm.services[d].service.base
-		}
+func (sm *ServiceManager) get(id instance.ID) *InstanceState {
+	if ss, ok := sm.services[id.Name]; ok {
+		return ss.get(id)
+	} else {
+		return nil
 	}
-	return dep
-}
-
-func (sm *ServiceManager) checkCircularDependencies() error {
-	//iterate over services
-	for sn, ss := range sm.services {
-		//return error if one service has a circular dependency
-		if ds := ss.service.depending; ds != nil {
-			if err := sm.serviceCheckCircularDependencies(sn, ds, &[]string{}); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
-}
-
-func (sm *ServiceManager) serviceCheckCircularDependencies(start string, check service.DependingService, checked *[]string) error {
-	//start: start service name
-	//check: current service
-	//checked: already checked services since start
-
-	//get dependencies
-	deps := check.Dependencies()
-	dl, adl := deps.Deps, deps.ADeps
-	//range over dependencies and additional dependencies
-	for _, dn := range append(dl, adl...) {
-		if start == dn {
-			//circular dependency if we hit the start again
-			return errors.New("circular import detected")
-		}
-		if !funk.ContainsString(*checked, dn) {
-			//check tree if not in checked
-			//save service name
-			*checked = append(*checked, dn)
-			//run the next check
-			if nds := sm.services[dn].service.depending; nds != nil {
-				if err := sm.serviceCheckCircularDependencies(start, nds, checked); err != nil {
-					return err
-				}
-			}
-		}
-	}
-	return nil
-}
-
-func (sm *ServiceManager) checkDependencyNames() error {
-	var errs []string
-	//iterate over services
-	for sn, ss := range sm.services {
-		var deps []string
-		if ds := ss.service.depending; ds != nil {
-			//get dependencies
-			//range over dependencies and additional dependencies
-			for _, dn := range append(ss.deps.Deps, ss.deps.ADeps...) {
-				if _, ok := sm.services[dn]; !ok {
-					deps = append(deps, dn)
-				}
-			}
-		}
-		if len(deps) > 0 {
-			errs = append(errs, sn+"->("+strings.Join(deps, ",")+")")
-		}
-	}
-	if len(errs) > 0 {
-		return errors.New(strings.Join(append([]string{"Service dependency error(s):"}, errs...), "\n"))
-	}
-	return nil
 }
 
 func NewServiceManager() (*ServiceManager, error) {
@@ -154,21 +133,13 @@ func NewServiceManager() (*ServiceManager, error) {
 	sm := new(ServiceManager)
 	sm.services = make(map[string]*ServiceState)
 	//add services
-	for _, s := range services.Services {
-		ss := newServiceStateBuiltin(sm, s)
-		sm.services[ss.name] = ss
-	}
-	//run checks
-	if err := sm.checkDependencyNames(); err != nil {
-		return nil, err
-	}
-	if err := sm.checkCircularDependencies(); err != nil {
-		return nil, err
-	}
-	//load second stage
-	for _, ss := range sm.services {
-		ss.loadDepData()
+	for _, m := range services.Services {
+		if _, ok := sm.services[m.Name]; ok {
+			return nil, errors.New("Service " + m.Name + " loaded twice")
+		}
+		sm.services[m.Name] = newServiceStateBuiltin(m)
 	}
 	sm.exposed = newExposed(sm)
+	sm.workercheck = make(chan interface{})
 	return sm, nil
 }

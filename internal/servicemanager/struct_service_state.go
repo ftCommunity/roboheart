@@ -1,180 +1,44 @@
 package servicemanager
 
 import (
-	"github.com/ftCommunity-roboheart/roboheart/package/service"
+	"errors"
+	"github.com/ftCommunity-roboheart/roboheart/package/instance"
+	"github.com/ftCommunity-roboheart/roboheart/package/manifest"
 )
 
 type ServiceState struct {
-	sm      *ServiceManager
-	name    string
-	service struct {
-		base          service.Service
-		emerstoppable service.EmergencyStoppableService
-		depending     service.DependingService
-		adddepending  service.AddDependingService
-		managing      service.ManagingService
-	}
-	running bool
-	deps    struct {
-		service.ServiceDependencies
-		deps          ssmap
-		rdeps         map[string]*ServiceState
-		adeps, radeps map[string]*adep
-	}
-	logger  service.LoggerFunc
-	error   service.ErrorFunc
-	builtin bool
+	manifest.ServiceManifest
+	builtin   bool
+	instances map[string]*InstanceState
+	sm        *ServiceManager
 }
 
-type ssmap map[string]*ServiceState
-
-func (ssm *ssmap) toServiceMap() map[string]service.Service {
-	svcs := make(map[string]service.Service)
-	for sn, s := range *ssm {
-		svcs[sn] = s.service.base
+func (ss *ServiceState) init(id instance.ID) error {
+	if _, ok := ss.instances[id.Instance]; ok {
+		return errors.New("Instance " + id.Instance + " does already exist")
 	}
-	return svcs
+	if id.Instance != NON_INSTANCE_NAME && !ss.ServiceManifest.Instantiation {
+		return errors.New("Service " + ss.ServiceManifest.Name + " cannot be instantiated")
+	}
+	is := &InstanceState{}
+	is.sm = ss.sm
+	is.ss = ss
+	is.id = id
+	ss.instances[id.Instance] = is
+	return nil
 }
 
-type adep struct {
-	*ServiceState
-	set bool
-}
-
-func (ss *ServiceState) getBase() service.Service {
-	return ss.service.base
-}
-
-func (ss *ServiceState) checkDepsReady() bool {
-	for _, ds := range ss.deps.deps {
-		if !ds.running {
-			return false
-		}
-	}
-	return true
-}
-
-func (ss *ServiceState) tryRun() bool {
-	if ss.running {
-		return true
-	}
-	if !ss.checkDepsReady() {
-		return false
-	}
-	ss.logger("Starting...")
-	ss.getBase().Init(ss.deps.deps.toServiceMap(), ss.logger, ss.error)
-	if ss.service.managing != nil {
-		ss.service.managing.SetServiceManager(ss.sm.exposed)
-	}
-	ss.logger("Started successfully")
-	ss.running = true
-	return true
-}
-
-func (ss *ServiceState) setReadyAdeps() bool {
-	if !ss.running {
-		panic("cannot set additional dependencies on stopped service")
-	}
-	if ss.service.adddepending == nil {
-		return true
-	}
-	done := true
-	adeps := make(map[string]service.Service)
-	for _, ds := range ss.deps.adeps {
-		if !ds.set {
-			if ds.running {
-				adeps[ds.name] = ds.getBase()
-				ds.set = true
-				rd := ds.deps.radeps[ss.name]
-				rd.set = true
-			} else {
-				done = false
-			}
-		}
-	}
-	if len(adeps) > 0 {
-		ss.service.adddepending.SetAdditionalDependencies(adeps)
-	}
-	return done
-}
-
-func (ss *ServiceState) tryStop() bool {
-	if !ss.running {
-		return true
-	}
-	for _, rds := range ss.deps.radeps {
-		if rds.set {
-			rds.service.adddepending.UnsetAdditionalDependencies([]string{ss.name})
-			ts := rds.deps.adeps[ss.name]
-			ts.set = false
-			rds.set = false
-		}
-	}
-	for _, ds := range ss.deps.rdeps {
-		if ds.running {
-			return false
-		}
-	}
-	ss.logger("Stopping...")
-	ss.getBase().Stop()
-	ss.logger("Stopped successfully")
-	ss.running = false
-	return true
-}
-
-func (ss *ServiceState) emerstop() {
-	if emer := ss.service.emerstoppable; emer != nil {
-		emer.EmergencyStop()
+func (ss *ServiceState) get(id instance.ID) *InstanceState {
+	if si, ok := ss.instances[id.Instance]; ok {
+		return si
+	} else {
+		return nil
 	}
 }
 
-func (ss *ServiceState) loadDepData() {
-	for _, sn := range ss.deps.Deps {
-		ss.deps.deps[sn] = ss.sm.services[sn]
-		ss.sm.services[sn].deps.rdeps[ss.name] = ss
-	}
-	for _, sn := range ss.deps.ADeps {
-		ss.deps.adeps[sn] = &adep{
-			ServiceState: ss.sm.services[sn],
-		}
-		ss.sm.services[sn].deps.radeps[ss.name] = &adep{
-			ServiceState: ss,
-		}
-	}
-}
-
-func (ss *ServiceState) loadInterfaces() {
-	if es, ok := ss.getBase().(service.EmergencyStoppableService); ok {
-		ss.service.emerstoppable = es
-	}
-	if ds, ok := ss.getBase().(service.DependingService); ok {
-		ss.service.depending = ds
-		ss.deps.ServiceDependencies = ds.Dependencies()
-		if ads, ok := ss.getBase().(service.AddDependingService); ok {
-			ss.service.adddepending = ads
-		}
-	}
-	if ms, ok := ss.getBase().(service.ManagingService); ok && ss.builtin {
-		ss.service.managing = ms
-	}
-}
-
-func (ss *ServiceState) load() {
-	ss.loadInterfaces()
-	ss.logger = ss.sm.genServiceLogger(ss.name)
-	ss.error = ss.sm.genServiceError(ss.name)
-	ss.deps.deps = make(ssmap)
-	ss.deps.rdeps = make(map[string]*ServiceState)
-	ss.deps.adeps = make(map[string]*adep)
-	ss.deps.radeps = make(map[string]*adep)
-}
-
-func newServiceStateBuiltin(sm *ServiceManager, s service.Service) *ServiceState {
-	ss := &ServiceState{}
-	ss.service.base = s
-	ss.name = s.Name()
-	ss.builtin = true
-	ss.sm = sm
-	ss.load()
+func newServiceStateBuiltin(m manifest.ServiceManifest) *ServiceState {
+	ss := new(ServiceState)
+	ss.ServiceManifest = m
+	ss.instances = make(map[string]*InstanceState)
 	return ss
 }
