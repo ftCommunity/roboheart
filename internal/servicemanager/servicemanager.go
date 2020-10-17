@@ -6,6 +6,7 @@ import (
 	"github.com/ftCommunity-roboheart/roboheart/package/manifest"
 	"github.com/thoas/go-funk"
 	"log"
+	"plugin"
 	"sync"
 
 	"github.com/ftCommunity-roboheart/roboheart/package/instance"
@@ -120,6 +121,25 @@ func (sm *ServiceManager) get(id instance.ID) *InstanceState {
 	} else {
 		return nil
 	}
+}
+
+func (sm *ServiceManager) loadFromPlugin(path string) error {
+	p, err := plugin.Open(path)
+	if err != nil {
+		return err
+	}
+	s, err := p.Lookup(PLUGIN_MANIFEST_SYMBOL)
+	if err != nil {
+		return err
+	}
+	m, ok := s.(manifest.ServiceManifest)
+	if !ok {
+		return errors.New("Error reading manifest")
+	}
+	if err = sm.loadService(m, false); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (sm *ServiceManager) loadService(m manifest.ServiceManifest, builtin bool) error {
