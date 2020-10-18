@@ -69,6 +69,9 @@ newdeps:
 			}
 			ni = is.sm.services[nd.Name].get(nd)
 		}
+		if !ni.running {
+			continue newdeps
+		}
 		is.deps.deps.Add(nd)
 		ni.deps.rdeps.Add(is.id)
 		di.SetDependency(ni.instance.base)
