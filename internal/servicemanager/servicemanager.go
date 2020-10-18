@@ -98,20 +98,20 @@ func (sm *ServiceManager) genServiceError(id instance.ID) instance.ErrorFunc {
 		log.Println(append([]interface{}{"Error on instance", sn + ":"}, v...)...)
 		sm.serviceslock.Lock()
 		defer sm.serviceslock.Unlock()
-		ss := sm.get(id)
-		if fs := ss.instance.forcestop; fs != nil {
+		is := sm.get(id)
+		if fs := is.instance.forcestop; fs != nil {
 			fs.ForceStop()
 		}
-		ss.running = false
-		for _, rd := range *ss.deps.rdeps {
+		is.running = false
+		for _, rd := range *is.deps.rdeps {
 			sm.get(rd).instance.depending.UnsetDependency(id)
-			ss.deps.rdeps.Delete(rd)
+			is.unsetRdep(rd)
 			sm.get(rd).deps.deps.Delete(id)
 		}
-		for _, d := range *ss.deps.deps {
+		for _, d := range *is.deps.deps {
 			// no unset needed because instance is stopped
-			ss.deps.deps.Delete(d)
-			sm.get(d).deps.rdeps.Delete(id)
+			is.deps.deps.Delete(d)
+			sm.get(d).unsetRdep(id)
 		}
 	}
 }

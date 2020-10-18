@@ -45,6 +45,15 @@ func (is *InstanceState) load() {
 	is.error = is.sm.genServiceError(is.id)
 }
 
+func (is *InstanceState) setRdep(id instance.ID) {
+	is.deps.rdeps.Add(id)
+}
+
+func (is *InstanceState) unsetRdep(id instance.ID) {
+	is.deps.rdeps.Delete(id)
+	is.lastrdep = time.Now()
+}
+
 func (is *InstanceState) updateDependencies() {
 	if is.instance.depending == nil || !is.running {
 		return
@@ -55,7 +64,7 @@ func (is *InstanceState) updateDependencies() {
 	for _, od := range o {
 		di.UnsetDependency(od)
 		is.deps.deps.Delete(od)
-		is.sm.services[od.Name].get(od).deps.rdeps.Delete(is.id)
+		is.sm.services[od.Name].get(od).unsetRdep(is.id)
 	}
 newdeps:
 	for _, nd := range n {
@@ -73,7 +82,7 @@ newdeps:
 			continue newdeps
 		}
 		is.deps.deps.Add(nd)
-		ni.deps.rdeps.Add(is.id)
+		ni.setRdep(is.id)
 		di.SetDependency(ni.instance.base)
 	}
 }
