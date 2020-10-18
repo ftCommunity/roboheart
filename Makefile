@@ -18,10 +18,9 @@ roboheart-txt: prepare
 clean:
 	rm -rf output
 
-
-.PHONY: checkdeps
-checkdeps:
-	go run cmd/checkdeps/*.go
+.PHONY: checksvcs
+checksvcs:
+	go run cmd/checksvcs/*.go
 
 .PHONY: prepare-services
 prepare-services:
