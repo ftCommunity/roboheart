@@ -194,13 +194,13 @@ func NewServiceManager() (*ServiceManager, error) {
 	//create ServiceManager amd initialize it
 	sm := new(ServiceManager)
 	sm.services = make(map[string]*ServiceState)
+	sm.exposed = newExposed(sm)
 	//add services
 	for _, m := range services.Services {
 		if err := sm.loadService(m, true); err != nil {
 			return nil, err
 		}
 	}
-	sm.exposed = newExposed(sm)
 	sm.workercheck = make(chan interface{})
 	return sm, nil
 }
