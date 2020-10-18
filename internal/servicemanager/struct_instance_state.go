@@ -20,11 +20,6 @@ type InstanceState struct {
 	error  instance.ErrorFunc
 }
 
-type dep struct {
-	*InstanceState
-	set bool
-}
-
 func (is *InstanceState) getBase() instance.Instance {
 	return is.instance.base
 }
@@ -51,9 +46,31 @@ func (is *InstanceState) load() {
 }
 
 func (is *InstanceState) updateDependencies() {
-	if is.instance.depending == nil {
+	if is.instance.depending == nil || !is.running {
 		return
 	}
-	ds := is.instance.depending
-	ds.Dependencies()
+	di := is.instance.depending
+	ndeps := di.Dependencies()
+	o, n, _ := is.deps.deps.Compare(ndeps)
+	for _, od := range o {
+		di.UnsetDependency(od)
+		is.deps.deps.Delete(od)
+		is.sm.services[od.Name].get(od).deps.rdeps.Delete(is.id)
+	}
+newdeps:
+	for _, nd := range n {
+		if _, ok := is.sm.services[nd.Name]; !ok {
+			continue newdeps
+		}
+		var ni *InstanceState
+		if ni = is.sm.services[nd.Name].get(nd); ni == nil {
+			if is.sm.newInstance(nd) != nil {
+				continue newdeps
+			}
+			ni = is.sm.services[nd.Name].get(nd)
+		}
+		is.deps.deps.Add(nd)
+		ni.deps.rdeps.Add(is.id)
+		di.SetDependency(ni.instance.base)
+	}
 }

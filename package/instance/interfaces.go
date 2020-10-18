@@ -15,7 +15,7 @@ type DependingInstance interface {
 	Dependencies() Dependencies
 	SetDependency(Instance)
 	UnsetDependency(ID)
-	OnServiceListChanged([]string)
+	OnServiceListChanged()
 	SetServiceListGetter(func() []string)
 	SetDependenciesChangedHandler(func())
 }

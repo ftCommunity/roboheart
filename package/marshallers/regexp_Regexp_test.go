@@ -17,7 +17,7 @@ func TestRegexp_MarshalJSON(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		if bytes.Compare(j, []byte{'"', 'a', 'b', 'c', '"'}) != 0 {
+		if !bytes.Equal(j, []byte{'"', 'a', 'b', 'c', '"'}) {
 			t.Error("Output mismatch")
 		}
 	}
@@ -48,7 +48,9 @@ func TestRegexp_UnmarshalJSON(t *testing.T) {
 	}
 	for i, ind := range in {
 		rs := &Regexp{}
-		rs.UnmarshalJSON(ind)
+		if err := rs.UnmarshalJSON(ind); err != nil {
+			t.Error(err)
+		}
 		if rs.Regexp.String() != out[i] {
 			t.Error("Output mismatch")
 		}

@@ -21,7 +21,7 @@ func (t *thread) start() error {
 	t.lock.Lock()
 	defer t.lock.Unlock()
 	if t.state {
-		return errors.New("Thread already running")
+		return errors.New("thread already running")
 	}
 	t.call()
 	t.state = true

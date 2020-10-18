@@ -65,15 +65,9 @@ func (tm *ThreadManager) StopAll() {
 	tm.lock.Lock()
 	tm.lockdown = true
 	tm.lock.Unlock()
-	var wg sync.WaitGroup
 	for _, t := range tm.threads {
-		wg.Add(1)
-		go func() {
-			t.stop()
-			wg.Done()
-		}()
+		t.stop()
 	}
-	wg.Wait()
 }
 
 func (tm *ThreadManager) genThreadLogger(tn string) instance.LoggerFunc {

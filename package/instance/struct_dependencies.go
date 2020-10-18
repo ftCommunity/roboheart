@@ -41,5 +41,5 @@ func (d *Dependencies) Delete(id ID) {
 			n = append(n, oid)
 		}
 	}
-	d = &n
+	*d = n
 }

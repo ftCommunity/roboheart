@@ -20,7 +20,7 @@ func main() {
 	sm.Init()
 	log.Println("Start-up completed")
 	//setup ctrl-c interrupt
-	c := make(chan os.Signal)
+	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	//wait for ctrl-c
 	<-c

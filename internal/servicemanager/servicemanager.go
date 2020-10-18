@@ -49,7 +49,7 @@ func (sm *ServiceManager) Stop() {
 
 func (sm *ServiceManager) newInstance(id instance.ID) error {
 	var ss *ServiceState
-	if ss, _ := sm.services[id.Name]; ss == nil {
+	if ss := sm.services[id.Name]; ss == nil {
 		return errors.New("Service " + id.Name + " is unknown")
 	}
 	if //goland:noinspection GoNilness
@@ -64,6 +64,7 @@ func (sm *ServiceManager) newInstance(id instance.ID) error {
 	}
 	if di := si.instance.depending; di != nil {
 		di.SetServiceListGetter(sm.getServiceList)
+		di.SetDependenciesChangedHandler(si.updateDependencies)
 	}
 	return nil
 }
@@ -123,6 +124,17 @@ func (sm *ServiceManager) get(id instance.ID) *InstanceState {
 	}
 }
 
+func (sm *ServiceManager) forAllInstances(f func(is *InstanceState) error) error {
+	for _, ss := range sm.services {
+		for _, is := range ss.instances {
+			if err := f(is); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
 func (sm *ServiceManager) loadFromPlugin(path string) error {
 	p, err := plugin.Open(path)
 	if err != nil {
@@ -134,7 +146,7 @@ func (sm *ServiceManager) loadFromPlugin(path string) error {
 	}
 	m, ok := s.(manifest.ServiceManifest)
 	if !ok {
-		return errors.New("Error reading manifest")
+		return errors.New("error reading manifest")
 	}
 	if err = sm.loadService(m, false); err != nil {
 		return err
@@ -154,7 +166,12 @@ func (sm *ServiceManager) loadService(m manifest.ServiceManifest, builtin bool) 
 			return err
 		}
 	}
-	return nil
+	return sm.forAllInstances(func(is *InstanceState) error {
+		if di := is.instance.depending; di != nil {
+			di.OnServiceListChanged()
+		}
+		return nil
+	})
 }
 
 func NewServiceManager() (*ServiceManager, error) {

@@ -36,7 +36,7 @@ func TestExtractString(t *testing.T) {
 }
 
 func TestMakeByteString(t *testing.T) {
-	if bytes.Compare(MakeByteString("abc"), []byte{'"', 'a', 'b', 'c', '"'}) != 0 {
+	if !bytes.Equal(MakeByteString("abc"), []byte{'"', 'a', 'b', 'c', '"'}) {
 		t.Error("Output mismatch")
 	}
 }

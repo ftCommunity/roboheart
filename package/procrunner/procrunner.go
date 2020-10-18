@@ -12,8 +12,8 @@ import (
 type Callback func(int)
 
 var (
-	errAlreadyRunning = errors.New("Process already running")
-	errNoProcess      = errors.New("No process to stop")
+	errAlreadyRunning = errors.New("process already running")
+	errNoProcess      = errors.New("no process to stop")
 )
 
 type ProcRunner struct {
@@ -65,7 +65,7 @@ func (p *ProcRunner) Stop() error {
 	}
 	p.killing = true
 	log.Println("PROC KILLING SET", p.name)
-	p.proc.Process.Kill()
+	_ = p.proc.Process.Kill()
 	return nil
 }
 
@@ -86,7 +86,6 @@ func (p *ProcRunner) UnsetEndCallback() {
 }
 
 func (p *ProcRunner) handleEnd() {
-	log.Println("PROC HANDLE END", p.name)
 	code := 0
 	if err := p.proc.Wait(); err != nil {
 		if exiterr, ok := err.(*exec.ExitError); ok {
@@ -98,7 +97,6 @@ func (p *ProcRunner) handleEnd() {
 	if p.killing {
 		p.proc = nil
 		p.killing = false
-		log.Println("PROC KILLED!!!", p.name)
 		return
 	}
 	p.proclock.Lock()
@@ -110,7 +108,7 @@ func (p *ProcRunner) handleEnd() {
 	p.proclock.Unlock()
 	if p.onAutoRestart != nil {
 		(*p.onAutoRestart)(code)
-		go p.Start()
+		go func() { _ = p.Start() }()
 		return
 	}
 	if p.onEnd != nil {

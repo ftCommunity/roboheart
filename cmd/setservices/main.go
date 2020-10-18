@@ -78,5 +78,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	ioutil.WriteFile("internal/services/services.go", code, 0644)
+	if err := ioutil.WriteFile("internal/services/services.go", code, 0644); err != nil {
+		panic(err)
+	}
 }
