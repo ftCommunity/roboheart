@@ -1,7 +1,7 @@
 package instance
 
 type Instance interface {
-	Init(LoggerFunc, ErrorFunc, SelfKillFunc)
+	Start()
 	Stop()
 	ID() ID
 }
@@ -16,6 +16,7 @@ type DependingInstance interface {
 	SetDependency(Instance)
 	UnsetDependency(ID)
 	OnServiceListChanged()
+	// functions below will only be called on instance creation and will not be called again
 	SetServiceListGetter(func() []string)
 	SetDependenciesChangedHandler(func())
 }

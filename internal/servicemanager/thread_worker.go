@@ -37,7 +37,7 @@ func (sm *ServiceManager) workertask() {
 	for _, ss := range sm.services {
 		for _, is := range ss.instances {
 			if !is.running {
-				is.instance.base.Init(is.logger, is.error, is.selfkiller)
+				is.instance.base.Start()
 				is.running = true
 			}
 			is.updateDependencies()

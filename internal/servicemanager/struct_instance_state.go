@@ -21,9 +21,6 @@ type InstanceState struct {
 	deps     struct {
 		deps, rdeps *instance.Dependencies
 	}
-	logger     instance.LoggerFunc
-	error      instance.ErrorFunc
-	selfkiller instance.SelfKillFunc
 }
 
 func (is *InstanceState) getBase() instance.Instance {
@@ -45,11 +42,8 @@ func (is *InstanceState) loadInterfaces() {
 func (is *InstanceState) load() {
 	is.deps.deps = new(instance.Dependencies)
 	is.deps.rdeps = new(instance.Dependencies)
-	is.instance.base = is.ss.ServiceManifest.InitFunc(is.id)
+	is.instance.base = is.ss.ServiceManifest.InitFunc(is.id, is.sm.genServiceLogger(is.id), is.sm.genServiceError(is.id), is.sm.genSelfKillFunc(is.id))
 	is.loadInterfaces()
-	is.logger = is.sm.genServiceLogger(is.id)
-	is.error = is.sm.genServiceError(is.id)
-	is.selfkiller = is.sm.genSelfKillFunc(is.id)
 }
 
 func (is *InstanceState) setRdep(id instance.ID) {
