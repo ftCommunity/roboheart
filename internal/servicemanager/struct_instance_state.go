@@ -1,6 +1,9 @@
 package servicemanager
 
-import "github.com/ftCommunity-roboheart/roboheart/package/instance"
+import (
+	"github.com/ftCommunity-roboheart/roboheart/package/instance"
+	"time"
+)
 
 type InstanceState struct {
 	sm       *ServiceManager
@@ -12,8 +15,10 @@ type InstanceState struct {
 		depending instance.DependingInstance
 		managing  instance.ManagingInstance
 	}
-	running bool
-	deps    struct {
+	running  bool
+	startup  bool // saves whether this was requested on startup
+	lastrdep time.Time
+	deps     struct {
 		deps, rdeps *instance.Dependencies
 	}
 	logger instance.LoggerFunc

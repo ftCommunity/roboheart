@@ -1,5 +1,7 @@
 package servicemanager
 
+import "time"
+
 func (sm *ServiceManager) triggerWorker() {
 	sm.workercalllock.Lock()
 	defer sm.workercalllock.Unlock()
@@ -36,8 +38,19 @@ func (sm *ServiceManager) workertask() {
 		for _, is := range ss.instances {
 			if !is.running {
 				is.instance.base.Init(is.logger, is.error)
+				is.running = true
 			}
 			is.updateDependencies()
+			if !is.startup {
+				if is.lastrdep.Add(SERVICE_NO_REASON_TIMEOUT).Before(time.Now()) && len(*is.deps.rdeps) == 0 {
+					for _, di := range *is.deps.deps {
+						is.instance.depending.UnsetDependency(di)
+						sm.get(di).deps.rdeps.Delete(is.id)
+					}
+					is.getBase().Stop()
+					delete(ss.instances, is.id.Instance)
+				}
+			}
 		}
 	}
 }
