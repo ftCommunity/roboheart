@@ -8,8 +8,8 @@ type (
 )
 
 type ServiceManifest struct {
-	Name          string
-	Instantiation bool
-	GetStartup    GetStartup
-	InitFunc      InitFunc
+	Name         string
+	Instantiable bool
+	GetStartup   GetStartup
+	InitFunc     InitFunc
 }
