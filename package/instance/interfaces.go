@@ -26,5 +26,5 @@ type ManagingInstance interface {
 }
 
 type ServiceManager interface {
-	//todo
+	LoadFromPlugin(path string) error
 }
