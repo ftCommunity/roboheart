@@ -86,6 +86,22 @@ func (sm *ServiceManager) genServiceLogger(id instance.ID) instance.LoggerFunc {
 	}
 }
 
+func (sm *ServiceManager) genSelfKillFunc(id instance.ID) instance.SelfKillFunc {
+	return func() {
+		sm.serviceslock.Lock()
+		defer sm.serviceslock.Unlock()
+		si := sm.get(id)
+		for _, di := range *si.deps.deps {
+			si.instance.depending.UnsetDependency(di)
+			sm.get(di).unsetRdep(id)
+		}
+		for _, di := range *si.deps.rdeps {
+			sm.get(di).instance.depending.UnsetDependency(id)
+		}
+		delete(sm.services[id.Name].instances, id.Instance)
+	}
+}
+
 func (sm *ServiceManager) genServiceError(id instance.ID) instance.ErrorFunc {
 	var sn string
 	if id.Instance == NON_INSTANCE_NAME {

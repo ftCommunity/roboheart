@@ -1,7 +1,7 @@
 package instance
 
 type Instance interface {
-	Init(LoggerFunc, ErrorFunc)
+	Init(LoggerFunc, ErrorFunc, SelfKillFunc)
 	Stop()
 	ID() ID
 }
