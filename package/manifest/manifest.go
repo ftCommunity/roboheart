@@ -10,6 +10,6 @@ type (
 type ServiceManifest struct {
 	Name         string
 	Instantiable bool
-	GetStartup   GetStartup
+	GetStartup   GetStartup //can be nil
 	InitFunc     InitFunc
 }

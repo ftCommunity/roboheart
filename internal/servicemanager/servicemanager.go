@@ -173,13 +173,21 @@ func (sm *ServiceManager) loadFromPlugin(path string) error {
 func (sm *ServiceManager) loadService(m manifest.ServiceManifest, builtin bool) error {
 	sm.serviceslock.Lock()
 	defer sm.serviceslock.Unlock()
+	if m.Name == "" {
+		return errors.New("Service name must not be empty")
+	}
 	if _, ok := sm.services[m.Name]; ok {
 		return errors.New("Service " + m.Name + " loaded twice")
 	}
+	if m.InitFunc == nil {
+		return errors.New("Service " + m.Name + " does not have InitFunc")
+	}
 	sm.services[m.Name] = newServiceState(m, builtin)
-	for _, suid := range sm.services[m.Name].GetStartup() {
-		if err := sm.newInstance(suid); err != nil {
-			return err
+	if gsuf := sm.services[m.Name].GetStartup; gsuf != nil {
+		for _, suid := range gsuf(sm.services[m.Name].configurator) {
+			if err := sm.newInstance(suid); err != nil {
+				return err
+			}
 		}
 	}
 	return sm.forAllInstances(func(is *InstanceState) error {
