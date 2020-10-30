@@ -21,6 +21,7 @@ type ServiceManager struct {
 	workercheck    chan interface{}
 	workercalllock sync.Mutex
 	serviceslock   sync.Mutex
+	config         *config
 }
 
 func (sm *ServiceManager) Init() {
@@ -182,9 +183,13 @@ func (sm *ServiceManager) loadService(m manifest.ServiceManifest, builtin bool) 
 	if m.InitFunc == nil {
 		return errors.New("Service " + m.Name + " does not have InitFunc")
 	}
-	sm.services[m.Name] = newServiceState(m, builtin)
-	if gsuf := sm.services[m.Name].GetStartup; gsuf != nil {
-		for _, suid := range gsuf(sm.services[m.Name].configurator) {
+	ss, err := newServiceState(m, builtin)
+	if err != nil {
+		return err
+	}
+	sm.services[m.Name] = ss
+	if gsuf := ss.GetStartup; gsuf != nil {
+		for _, suid := range gsuf(ss.configurator) {
 			if err := sm.newInstance(suid); err != nil {
 				return err
 			}
@@ -198,11 +203,16 @@ func (sm *ServiceManager) loadService(m manifest.ServiceManifest, builtin bool) 
 	})
 }
 
-func NewServiceManager() (*ServiceManager, error) {
+func NewServiceManager(config []byte) (*ServiceManager, error) {
 	//create ServiceManager amd initialize it
 	sm := new(ServiceManager)
 	sm.services = make(map[string]*ServiceState)
 	sm.exposed = newExposed(sm)
+	if c, err := readConfig(config); err != nil {
+		return nil, err
+	} else {
+		sm.config = c
+	}
 	//add services
 	for _, m := range services.Services {
 		if err := sm.loadService(m, true); err != nil {

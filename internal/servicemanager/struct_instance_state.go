@@ -42,7 +42,7 @@ func (is *InstanceState) loadInterfaces() {
 func (is *InstanceState) load() {
 	is.deps.deps = new(instance.Dependencies)
 	is.deps.rdeps = new(instance.Dependencies)
-	is.instance.base = is.ss.ServiceManifest.InitFunc(is.id, is.sm.genServiceLogger(is.id), is.sm.genServiceError(is.id), is.sm.genSelfKillFunc(is.id))
+	is.instance.base = is.ss.ServiceManifest.InitFunc(is.id, is.sm.genServiceLogger(is.id), is.sm.genServiceError(is.id), is.sm.genSelfKillFunc(is.id), is.ss.configurator)
 	is.loadInterfaces()
 }
 

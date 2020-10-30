@@ -7,7 +7,7 @@ import (
 
 func main() {
 	log.Println("Checking dependencies")
-	if _, err := servicemanager.NewServiceManager(); err != nil {
+	if _, err := servicemanager.NewServiceManager(nil); err != nil {
 		log.Fatal(err)
 	}
 	log.Println("Dependencies ok!")

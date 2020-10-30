@@ -8,9 +8,10 @@ import (
 
 type ServiceState struct {
 	manifest.ServiceManifest
-	builtin   bool
-	instances map[string]*InstanceState
-	sm        *ServiceManager
+	builtin      bool
+	instances    map[string]*InstanceState
+	configurator manifest.Configurator
+	sm           *ServiceManager
 }
 
 func (ss *ServiceState) init(id instance.ID) error {
@@ -36,10 +37,24 @@ func (ss *ServiceState) get(id instance.ID) *InstanceState {
 	}
 }
 
-func newServiceState(m manifest.ServiceManifest, builtin bool) *ServiceState {
+func (ss *ServiceState) loadConfig() error {
+	if cf := ss.ConfigFunc; cf != nil {
+		if c, err := cf(ss.sm.config.Services[ss.Name]); err != nil {
+			return err
+		} else {
+			ss.configurator = c
+		}
+	}
+	return nil
+}
+
+func newServiceState(m manifest.ServiceManifest, builtin bool) (*ServiceState, error) {
 	ss := new(ServiceState)
 	ss.ServiceManifest = m
 	ss.instances = make(map[string]*InstanceState)
 	ss.builtin = builtin
-	return ss
+	if err := ss.loadConfig(); err != nil {
+		return nil, err
+	}
+	return ss, nil
 }

@@ -1,6 +1,9 @@
 package main
 
 import (
+	"fmt"
+	"github.com/akamensky/argparse"
+	"io/ioutil"
 	"log"
 	"os"
 	"os/signal"
@@ -10,9 +13,26 @@ import (
 )
 
 func main() {
+	parser := argparse.NewParser("roboheart", "roboheart")
+	configpath := parser.String("c", "config", &argparse.Options{
+		Required: false,
+		Help:     "path to configuration file",
+	})
+	err := parser.Parse(os.Args)
+	if err != nil {
+		fmt.Print(parser.Usage(err))
+	}
 	log.Println("Starting roboheart")
+	var config []byte
+	if *configpath != "" {
+		var err error
+		config, err = ioutil.ReadFile(*configpath)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
 	//create ServiceManager
-	sm, err := servicemanager.NewServiceManager()
+	sm, err := servicemanager.NewServiceManager(config)
 	if err != nil {
 		log.Fatal(err)
 	}
