@@ -30,7 +30,7 @@ func main() {
 	for _, sn := range sns {
 		args[sn] = parser.Flag("", sn, &argparse.Options{
 			Required: false,
-			Help:     "Enable instance " + sn,
+			Help:     "Enable services " + sn,
 			Default:  false,
 		})
 	}
