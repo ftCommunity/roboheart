@@ -42,7 +42,7 @@ func (sm *ServiceManager) Stop() {
 			for _, rd := range *si.deps.rdeps {
 				sm.get(rd).instance.depending.UnsetDependency(si.id)
 			}
-			si.getBase().Stop()
+			si.stop()
 			delete(ss.instances, si.id.Instance)
 		}
 	}
@@ -50,14 +50,13 @@ func (sm *ServiceManager) Stop() {
 
 func (sm *ServiceManager) newInstance(id instance.ID, startup bool) error {
 	var ss *ServiceState
-	if ss := sm.services[id.Name]; ss == nil {
+	ss = sm.services[id.Name]
+	if ss == nil {
 		return errors.New("Service " + id.Name + " is unknown")
 	}
-	if //goland:noinspection GoNilness
-	err := ss.init(id); err != nil {
+	if err := ss.init(id); err != nil {
 		log.Fatal(err)
 	}
-	//goland:noinspection GoNilness
 	si := ss.get(id)
 	if err := si.load(); err != nil {
 		return err
@@ -77,16 +76,9 @@ func (sm *ServiceManager) getServiceList() []string {
 	return funk.Keys(sm.services).([]string)
 }
 
-func (sm *ServiceManager) genServiceLogger(id instance.ID) instance.LoggerFunc {
-	var sn string
-	if id.Instance == instance.NON_INSTANCE_NAME {
-		sn = id.Name
-	} else {
-		sn = id.Name + "." + id.Instance
-	}
-	sn = "\"" + sn + "\""
+func (sm *ServiceManager) genServiceLogger(idstr string) instance.LoggerFunc {
 	return func(v ...interface{}) {
-		log.Println(append([]interface{}{"Log from instance", sn + ":"}, v...)...)
+		log.Println(append([]interface{}{"Log from instance", "\"" + idstr + "\"" + ":"}, v...)...)
 	}
 }
 
@@ -106,22 +98,13 @@ func (sm *ServiceManager) genSelfKillFunc(id instance.ID) instance.SelfKillFunc 
 	}
 }
 
-func (sm *ServiceManager) genServiceError(id instance.ID) instance.ErrorFunc {
-	var sn string
-	if id.Instance == instance.NON_INSTANCE_NAME {
-		sn = id.Name
-	} else {
-		sn = id.Name + "." + id.Instance
-	}
-	sn = "\"" + sn + "\""
+func (sm *ServiceManager) genServiceError(id instance.ID, idstr string) instance.ErrorFunc {
 	return func(v ...interface{}) {
-		log.Println(append([]interface{}{"Error on instance", sn + ":"}, v...)...)
+		log.Println(append([]interface{}{"Error on instance", "\"" + idstr + "\"" + ":"}, v...)...)
 		sm.serviceslock.Lock()
 		defer sm.serviceslock.Unlock()
 		is := sm.get(id)
-		if fs := is.instance.forcestop; fs != nil {
-			fs.ForceStop()
-		}
+		is.forcestop()
 		is.running = false
 		for _, rd := range *is.deps.rdeps {
 			sm.get(rd).instance.depending.UnsetDependency(id)

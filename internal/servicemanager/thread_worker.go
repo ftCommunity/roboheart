@@ -37,7 +37,7 @@ func (sm *ServiceManager) workertask() {
 	for _, ss := range sm.services {
 		for _, is := range ss.instances {
 			if !is.running {
-				is.instance.base.Start()
+				is.start()
 				is.running = true
 			}
 			is.updateDependencies()
@@ -47,7 +47,7 @@ func (sm *ServiceManager) workertask() {
 						is.instance.depending.UnsetDependency(di)
 						sm.get(di).deps.rdeps.Delete(is.id)
 					}
-					is.getBase().Stop()
+					is.stop()
 					delete(ss.instances, is.id.Instance)
 				}
 			}
