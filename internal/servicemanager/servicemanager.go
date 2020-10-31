@@ -175,13 +175,13 @@ func (sm *ServiceManager) loadService(m manifest.ServiceManifest, builtin bool) 
 	sm.serviceslock.Lock()
 	defer sm.serviceslock.Unlock()
 	if m.Name == "" {
-		return errors.New("Service name must not be empty")
+		return errors.New("service name must not be empty")
 	}
 	if _, ok := sm.services[m.Name]; ok {
-		return errors.New("Service " + m.Name + " loaded twice")
+		return errors.New("service " + m.Name + " loaded twice")
 	}
 	if m.InitFunc == nil {
-		return errors.New("Service " + m.Name + " does not have InitFunc")
+		return errors.New("service " + m.Name + " does not have InitFunc")
 	}
 	ss, err := newServiceState(m, builtin)
 	if err != nil {

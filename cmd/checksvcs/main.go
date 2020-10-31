@@ -6,9 +6,9 @@ import (
 )
 
 func main() {
-	log.Println("Checking dependencies")
+	log.Println("Checking services")
 	if _, err := servicemanager.NewServiceManager(nil); err != nil {
 		log.Fatal(err)
 	}
-	log.Println("Dependencies ok!")
+	log.Println("Services ok!")
 }
