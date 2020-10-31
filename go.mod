@@ -2,7 +2,6 @@ module github.com/ftCommunity-roboheart/roboheart
 
 go 1.14
 
-replace github.com/digineo/go-uci => github.com/ftCommunity-roboheart/go-uci v0.0.0-20200725220005-3826098d8ac7
 
 require (
 	github.com/akamensky/argparse v1.2.2
