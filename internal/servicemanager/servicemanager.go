@@ -214,7 +214,13 @@ func NewServiceManager(config []byte) (*ServiceManager, error) {
 		sm.config = c
 	}
 	//add services
-	for _, m := range services.Services {
+	for _, m := range func() []manifest.ServiceManifest {
+		var ml []manifest.ServiceManifest
+		for _, sp := range services.ServiceProviders {
+			ml = append(ml, sp...)
+		}
+		return ml
+	}() {
 		if err := sm.loadService(m, true); err != nil {
 			return nil, err
 		}

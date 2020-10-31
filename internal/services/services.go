@@ -4,4 +4,5 @@ import (
 	"github.com/ftCommunity-roboheart/roboheart/package/manifest"
 )
 
-var Services = []manifest.ServiceManifest{}
+var ServiceProviders = [][]manifest.ServiceManifest{
+}
