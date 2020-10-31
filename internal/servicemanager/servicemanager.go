@@ -59,7 +59,9 @@ func (sm *ServiceManager) newInstance(id instance.ID) error {
 	}
 	//goland:noinspection GoNilness
 	si := ss.get(id)
-	si.load()
+	if err := si.load(); err != nil {
+		return err
+	}
 	if mi := si.instance.managing; mi != nil {
 		mi.SetServiceManager(sm.exposed)
 	}
