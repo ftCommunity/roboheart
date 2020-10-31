@@ -180,7 +180,7 @@ func (sm *ServiceManager) loadService(m manifest.ServiceManifest, builtin bool) 
 	if _, ok := sm.services[m.Name]; ok {
 		return errors.New("service " + m.Name + " loaded twice")
 	}
-	if m.InitFunc == nil {
+	if m.InstanceInitFunc == nil {
 		return errors.New("service " + m.Name + " does not have InitFunc")
 	}
 	ss, err := newServiceState(m, builtin)
@@ -188,7 +188,7 @@ func (sm *ServiceManager) loadService(m manifest.ServiceManifest, builtin bool) 
 		return err
 	}
 	sm.services[m.Name] = ss
-	if gsuf := ss.GetStartup; gsuf != nil {
+	if gsuf := ss.GetStartupInstancesFunc; gsuf != nil {
 		for _, suid := range gsuf(ss.configurator) {
 			if err := sm.newInstance(suid); err != nil {
 				return err

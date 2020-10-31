@@ -38,11 +38,20 @@ func (ss *ServiceState) get(id instance.ID) *InstanceState {
 }
 
 func (ss *ServiceState) loadConfig() error {
-	if cf := ss.ConfigFunc; cf != nil {
+	if cf := ss.ConfigLoaderFunc; cf != nil {
 		if c, err := cf(ss.sm.config.Services[ss.Name]); err != nil {
 			return err
 		} else {
 			ss.configurator = c
+		}
+	}
+	return nil
+}
+
+func (ss *ServiceState) loadService() error {
+	if sf := ss.ServiceLoaderFunc; sf != nil {
+		if err := sf(ss.configurator); err != nil {
+			return err
 		}
 	}
 	return nil
@@ -54,6 +63,9 @@ func newServiceState(m manifest.ServiceManifest, builtin bool) (*ServiceState, e
 	ss.instances = make(map[string]*InstanceState)
 	ss.builtin = builtin
 	if err := ss.loadConfig(); err != nil {
+		return nil, err
+	}
+	if err := ss.loadService(); err != nil {
 		return nil, err
 	}
 	return ss, nil

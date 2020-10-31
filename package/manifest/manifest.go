@@ -6,16 +6,21 @@ import (
 )
 
 type (
-	GetStartup   func(Configurator) []instance.ID
-	InitFunc     func(instance.ID, instance.LoggerFunc, instance.ErrorFunc, instance.SelfKillFunc, Configurator) instance.Instance
-	ConfigFunc   func(json.RawMessage) (Configurator, error) //argument == nil value => no config
 	Configurator interface{}
 )
 
+type (
+	ConfigLoaderFunc        func(json.RawMessage) (Configurator, error) //argument == nil value => no config
+	ServiceLoaderFunc       func(Configurator) error
+	GetStartupInstancesFunc func(Configurator) []instance.ID
+	InstanceInitFunc        func(instance.ID, instance.LoggerFunc, instance.ErrorFunc, instance.SelfKillFunc, Configurator) instance.Instance
+)
+
 type ServiceManifest struct {
-	Name         string
-	Instantiable bool
-	GetStartup   GetStartup //can be nil
-	InitFunc     InitFunc
-	ConfigFunc   ConfigFunc
+	Name                    string
+	Instantiable            bool
+	ConfigLoaderFunc        ConfigLoaderFunc        //can be nil
+	ServiceLoaderFunc       ServiceLoaderFunc       //can be nil
+	GetStartupInstancesFunc GetStartupInstancesFunc //can be nil
+	InstanceInitFunc        InstanceInitFunc
 }
