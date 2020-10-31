@@ -49,8 +49,7 @@ func (sm *ServiceManager) Stop() {
 }
 
 func (sm *ServiceManager) newInstance(id instance.ID, startup bool) error {
-	var ss *ServiceState
-	ss = sm.services[id.Name]
+	ss := sm.services[id.Name]
 	if ss == nil {
 		return errors.New("Service " + id.Name + " is unknown")
 	}
