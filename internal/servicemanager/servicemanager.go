@@ -76,7 +76,7 @@ func (sm *ServiceManager) getServiceList() []string {
 
 func (sm *ServiceManager) genServiceLogger(id instance.ID) instance.LoggerFunc {
 	var sn string
-	if id.Instance == NON_INSTANCE_NAME {
+	if id.Instance == instance.NON_INSTANCE_NAME {
 		sn = id.Name
 	} else {
 		sn = id.Name + "." + id.Instance
@@ -105,7 +105,7 @@ func (sm *ServiceManager) genSelfKillFunc(id instance.ID) instance.SelfKillFunc 
 
 func (sm *ServiceManager) genServiceError(id instance.ID) instance.ErrorFunc {
 	var sn string
-	if id.Instance == NON_INSTANCE_NAME {
+	if id.Instance == instance.NON_INSTANCE_NAME {
 		sn = id.Name
 	} else {
 		sn = id.Name + "." + id.Instance

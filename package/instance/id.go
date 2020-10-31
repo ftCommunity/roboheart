@@ -1,5 +1,7 @@
 package instance
 
+const NON_INSTANCE_NAME = ""
+
 type ID struct {
 	Name     string //service name
 	Instance string
