@@ -1,6 +1,8 @@
 package servicemanager
 
-import "time"
+import (
+	"time"
+)
 
 func (sm *ServiceManager) triggerWorker() {
 	sm.workercalllock.Lock()
@@ -32,25 +34,70 @@ func (sm *ServiceManager) worker() {
 }
 
 func (sm *ServiceManager) workertask() {
-	sm.serviceslock.Lock()
-	defer sm.serviceslock.Unlock()
-	for _, ss := range sm.services {
-		for _, is := range ss.instances {
-			if !is.running {
-				is.start()
-				is.running = true
-			}
-			is.updateDependencies()
-			if !is.startup {
-				if is.lastrdep.Add(INSTANCE_NO_REASON_TIMEOUT).Before(time.Now()) && len(*is.deps.rdeps) == 0 {
-					for _, di := range *is.deps.deps {
-						is.instance.depending.UnsetDependency(di)
-						sm.get(di).deps.rdeps.Delete(is.id)
+workerloop:
+	for {
+		sm.workerrunninglock.Lock()
+		sm.workerrunning = true
+		sm.workerrunninglock.Unlock()
+		sm.serviceslock.Lock()
+		for _, ss := range sm.services {
+			for _, is := range ss.instances {
+				if !is.running {
+					startok := make(chan interface{})
+					go func() {
+						is.start()
+						startok <- struct{}{}
+					}()
+					select {
+					case <-startok:
+						{
+						}
+					case <-sm.workerabort:
+						{
+							sm.workerrunninglock.Lock()
+							sm.workerrunning = false
+							sm.workerrunninglock.Unlock()
+							sm.serviceslock.Unlock()
+							continue workerloop
+						}
 					}
-					is.stop()
-					delete(ss.instances, is.id.Instance)
+					is.running = true
+				}
+				is.updateDependencies()
+				if !is.startup {
+					if is.lastrdep.Add(INSTANCE_NO_REASON_TIMEOUT).Before(time.Now()) && len(*is.deps.rdeps) == 0 {
+						for _, di := range *is.deps.deps {
+							is.instance.depending.UnsetDependency(di)
+							sm.get(di).deps.rdeps.Delete(is.id)
+						}
+						stopok := make(chan interface{})
+						go func() {
+							is.stop()
+							stopok <- struct{}{}
+						}()
+						select {
+						case <-stopok:
+							{
+								delete(ss.instances, is.id.Instance)
+							}
+						case <-sm.workerabort:
+							{
+								delete(ss.instances, is.id.Instance)
+								sm.workerrunninglock.Lock()
+								sm.workerrunning = false
+								sm.workerrunninglock.Unlock()
+								sm.serviceslock.Unlock()
+								continue workerloop
+							}
+						}
+					}
 				}
 			}
 		}
+		sm.workerrunninglock.Lock()
+		sm.workerrunning = false
+		sm.workerrunninglock.Unlock()
+		sm.serviceslock.Unlock()
+		return
 	}
 }

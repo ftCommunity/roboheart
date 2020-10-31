@@ -13,15 +13,18 @@ import (
 )
 
 type ServiceManager struct {
-	services       map[string]*ServiceState
-	exposed        *exposed
-	wg             sync.WaitGroup
-	workercall     bool
-	workerstop     bool
-	workercheck    chan interface{}
-	workercalllock sync.Mutex
-	serviceslock   sync.Mutex
-	config         *config
+	services          map[string]*ServiceState
+	exposed           *exposed
+	wg                sync.WaitGroup
+	workercall        bool
+	workerstop        bool
+	workercheck       chan interface{}
+	workercalllock    sync.Mutex
+	workerrunning     bool
+	workerrunninglock sync.Mutex
+	workerabort       chan interface{}
+	serviceslock      sync.Mutex
+	config            *config
 }
 
 func (sm *ServiceManager) Init() {
@@ -100,6 +103,13 @@ func (sm *ServiceManager) genSelfKillFunc(id instance.ID) instance.SelfKillFunc 
 func (sm *ServiceManager) genServiceError(id instance.ID, idstr string) instance.ErrorFunc {
 	return func(v ...interface{}) {
 		log.Println(append([]interface{}{"Error on instance", "\"" + idstr + "\"" + ":"}, v...)...)
+		sm.workerrunninglock.Lock()
+		if sm.workerrunning {
+			sm.workerrunninglock.Unlock()
+			sm.workerabort <- struct{}{}
+		} else {
+			sm.workerrunninglock.Unlock()
+		}
 		sm.serviceslock.Lock()
 		defer sm.serviceslock.Unlock()
 		is := sm.get(id)
@@ -211,5 +221,6 @@ func NewServiceManager(config []byte) (*ServiceManager, error) {
 		}
 	}
 	sm.workercheck = make(chan interface{})
+	sm.workerabort = make(chan interface{})
 	return sm, nil
 }
