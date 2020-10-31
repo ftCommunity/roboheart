@@ -1,6 +1,7 @@
 package servicemanager
 
 import (
+	"errors"
 	"github.com/ftCommunity-roboheart/roboheart/package/instance"
 	"time"
 )
@@ -39,11 +40,15 @@ func (is *InstanceState) loadInterfaces() {
 	}
 }
 
-func (is *InstanceState) load() {
+func (is *InstanceState) load() error {
 	is.deps.deps = new(instance.Dependencies)
 	is.deps.rdeps = new(instance.Dependencies)
 	is.instance.base = is.ss.ServiceManifest.InstanceInitFunc(is.id, is.sm.genServiceLogger(is.id), is.sm.genServiceError(is.id), is.sm.genSelfKillFunc(is.id), is.ss.configurator)
+	if is.instance.base == nil {
+		return errors.New("InstanceInitFunc returned nil")
+	}
 	is.loadInterfaces()
+	return nil
 }
 
 func (is *InstanceState) setRdep(id instance.ID) {
