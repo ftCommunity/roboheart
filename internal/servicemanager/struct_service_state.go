@@ -57,11 +57,12 @@ func (ss *ServiceState) loadService() error {
 	return nil
 }
 
-func newServiceState(m manifest.ServiceManifest, builtin bool) (*ServiceState, error) {
+func newServiceState(m manifest.ServiceManifest, builtin bool, sm *ServiceManager) (*ServiceState, error) {
 	ss := new(ServiceState)
 	ss.ServiceManifest = m
 	ss.instances = make(map[string]*InstanceState)
 	ss.builtin = builtin
+	ss.sm = sm
 	if err := ss.loadConfig(); err != nil {
 		return nil, err
 	}

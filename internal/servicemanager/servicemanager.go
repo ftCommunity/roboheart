@@ -185,7 +185,7 @@ func (sm *ServiceManager) loadService(m manifest.ServiceManifest, builtin bool) 
 	if m.InstanceInitFunc == nil {
 		return errors.New("service " + m.Name + " does not have InitFunc")
 	}
-	ss, err := newServiceState(m, builtin)
+	ss, err := newServiceState(m, builtin, sm)
 	if err != nil {
 		return err
 	}
