@@ -48,7 +48,7 @@ func (sm *ServiceManager) Stop() {
 	}
 }
 
-func (sm *ServiceManager) newInstance(id instance.ID) error {
+func (sm *ServiceManager) newInstance(id instance.ID, startup bool) error {
 	var ss *ServiceState
 	if ss := sm.services[id.Name]; ss == nil {
 		return errors.New("Service " + id.Name + " is unknown")
@@ -62,6 +62,7 @@ func (sm *ServiceManager) newInstance(id instance.ID) error {
 	if err := si.load(); err != nil {
 		return err
 	}
+	si.startup = startup
 	if mi := si.instance.managing; mi != nil {
 		mi.SetServiceManager(sm.exposed)
 	}
@@ -192,7 +193,7 @@ func (sm *ServiceManager) loadService(m manifest.ServiceManifest, builtin bool) 
 	sm.services[m.Name] = ss
 	if gsuf := ss.GetStartupInstancesFunc; gsuf != nil {
 		for _, suid := range gsuf(ss.configurator) {
-			if err := sm.newInstance(suid); err != nil {
+			if err := sm.newInstance(suid, true); err != nil {
 				return err
 			}
 		}

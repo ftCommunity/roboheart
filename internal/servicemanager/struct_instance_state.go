@@ -79,7 +79,7 @@ newdeps:
 		}
 		var ni *InstanceState
 		if ni = is.sm.services[nd.Name].get(nd); ni == nil {
-			if is.sm.newInstance(nd) != nil {
+			if is.sm.newInstance(nd, false) != nil {
 				continue newdeps
 			}
 			ni = is.sm.services[nd.Name].get(nd)
