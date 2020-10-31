@@ -18,7 +18,7 @@ func (ss *ServiceState) init(id instance.ID) error {
 	if _, ok := ss.instances[id.Instance]; ok {
 		return errors.New("Instance " + id.Instance + " does already exist")
 	}
-	if id.Instance != NON_INSTANCE_NAME && !ss.ServiceManifest.Instantiable {
+	if id.Instance != instance.NON_INSTANCE_NAME && !ss.ServiceManifest.Instantiable {
 		return errors.New("Service " + ss.ServiceManifest.Name + " cannot be instantiated")
 	}
 	is := &InstanceState{}
