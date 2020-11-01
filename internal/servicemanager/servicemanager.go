@@ -198,7 +198,7 @@ func (sm *ServiceManager) loadService(m manifest.ServiceManifest, builtin bool) 
 	})
 }
 
-func NewServiceManager(config []byte) (*ServiceManager, error) {
+func NewServiceManager(config []byte, pluginpaths []string) (*ServiceManager, error) {
 	//create ServiceManager amd initialize it
 	sm := new(ServiceManager)
 	sm.services = make(map[string]*ServiceState)
@@ -218,6 +218,12 @@ func NewServiceManager(config []byte) (*ServiceManager, error) {
 	}() {
 		if err := sm.loadService(m, true); err != nil {
 			return nil, err
+		}
+	}
+	//add plugins
+	for _,pp:=range pluginpaths{
+		if err:=sm.loadFromPlugin(pp);err!=nil{
+			return nil,err
 		}
 	}
 	sm.workercheck = make(chan interface{})

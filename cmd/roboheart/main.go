@@ -18,6 +18,10 @@ func main() {
 		Required: false,
 		Help:     "path to configuration file",
 	})
+	pluginpaths:=parser.StringList("p","plugin",&argparse.Options{
+		Required: false,
+		Help:     "path to plugin files",
+	})
 	err := parser.Parse(os.Args)
 	if err != nil {
 		fmt.Print(parser.Usage(err))
@@ -32,7 +36,7 @@ func main() {
 		}
 	}
 	//create ServiceManager
-	sm, err := servicemanager.NewServiceManager(config)
+	sm, err := servicemanager.NewServiceManager(config,*pluginpaths)
 	if err != nil {
 		log.Fatal(err)
 	}
