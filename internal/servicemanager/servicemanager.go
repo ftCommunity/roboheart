@@ -221,9 +221,9 @@ func NewServiceManager(config []byte, pluginpaths []string) (*ServiceManager, er
 		}
 	}
 	//add plugins
-	for _,pp:=range pluginpaths{
-		if err:=sm.loadFromPlugin(pp);err!=nil{
-			return nil,err
+	for _, pp := range pluginpaths {
+		if err := sm.loadFromPlugin(pp); err != nil {
+			return nil, err
 		}
 	}
 	sm.workercheck = make(chan interface{})
