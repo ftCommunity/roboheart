@@ -15,11 +15,17 @@ type ServiceState struct {
 }
 
 func (ss *ServiceState) init(id instance.ID) error {
+	if id.Name != ss.ServiceManifest.Name {
+		return errors.New("Service " + ss.ServiceManifest.Name + ": name mismatch: " + id.Name)
+	}
 	if _, ok := ss.instances[id.Instance]; ok {
 		return errors.New("Instance " + id.Instance + " does already exist")
 	}
 	if id.Instance != instance.NON_INSTANCE_NAME && !ss.ServiceManifest.Instantiable {
 		return errors.New("Service " + ss.ServiceManifest.Name + " cannot be instantiated")
+	}
+	if id.Instance == instance.NON_INSTANCE_NAME && ss.ServiceManifest.Instantiable {
+		return errors.New("Service " + ss.ServiceManifest.Name + " cannot have instance name \"" + instance.NON_INSTANCE_NAME + "\"")
 	}
 	is := &InstanceState{}
 	is.sm = ss.sm
