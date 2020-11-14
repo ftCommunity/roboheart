@@ -7,7 +7,7 @@ import (
 
 func main() {
 	log.Println("Checking services")
-	if _, err := servicemanager.NewServiceManager(nil,nil); err != nil {
+	if _, err := servicemanager.NewServiceManager(nil, nil); err != nil {
 		log.Fatal(err)
 	}
 	log.Println("Services ok!")
