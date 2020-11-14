@@ -11,7 +11,6 @@ type InstanceState struct {
 	sm       *ServiceManager
 	ss       *ServiceState
 	id       instance.ID
-	idstr    string
 	instance struct {
 		base      instance.Instance
 		forcestop instance.ForceStoppableInstance
@@ -45,12 +44,7 @@ func (is *InstanceState) loadInterfaces() {
 func (is *InstanceState) load() error {
 	is.deps.deps = new(instance.Dependencies)
 	is.deps.rdeps = new(instance.Dependencies)
-	if is.id.Instance == instance.NON_INSTANCE_NAME {
-		is.idstr = is.id.Name
-	} else {
-		is.idstr = is.id.Name + "." + is.id.Instance
-	}
-	is.instance.base = is.ss.ServiceManifest.InstanceInitFunc(is.id, is.sm.genServiceLogger(is.idstr), is.sm.genServiceError(is.id, is.idstr), is.sm.genSelfKillFunc(is.id), is.ss.configurator)
+	is.instance.base = is.ss.ServiceManifest.InstanceInitFunc(is.id, is.sm.genServiceLogger(is.id.String()), is.sm.genServiceError(is.id, is.id.String()), is.sm.genSelfKillFunc(is.id), is.ss.configurator)
 	if is.instance.base == nil {
 		return errors.New("InstanceInitFunc returned nil")
 	}
@@ -101,17 +95,17 @@ newdeps:
 }
 
 func (is *InstanceState) start() {
-	log.Println("Starting instance \"" + is.idstr + "\"")
+	log.Println("Starting instance \"" + is.id.String() + "\"")
 	is.getBase().Start()
 }
 
 func (is *InstanceState) stop() {
-	log.Println("Stopping instance \"" + is.idstr + "\"")
+	log.Println("Stopping instance \"" + is.id.String() + "\"")
 	is.getBase().Stop()
 }
 
 func (is *InstanceState) forcestop() {
-	log.Println("Force-stopping instance \"" + is.idstr + "\"")
+	log.Println("Force-stopping instance \"" + is.id.String() + "\"")
 	if fs := is.instance.forcestop; fs != nil {
 		fs.ForceStop()
 	}
