@@ -65,7 +65,9 @@ workerloop:
 				}
 				is.updateDependencies()
 				if !is.startup {
-					if is.lastrdep.Add(INSTANCE_NO_REASON_TIMEOUT).Before(time.Now()) && len(*is.deps.rdeps) == 0 {
+					if is.created.Add(INSTANCE_NO_REASON_TIMEOUT).Before(time.Now()) &&
+						is.lastrdep.Add(INSTANCE_NO_REASON_TIMEOUT).Before(time.Now()) &&
+						len(*is.deps.rdeps) == 0 {
 						for _, di := range *is.deps.deps {
 							is.instance.depending.UnsetDependency(di)
 							sm.get(di).deps.rdeps.Delete(is.id)

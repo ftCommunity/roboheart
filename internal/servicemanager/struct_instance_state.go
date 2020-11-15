@@ -20,6 +20,7 @@ type InstanceState struct {
 	}
 	running  bool
 	startup  bool // saves whether this was requested on startup
+	created  time.Time
 	lastrdep time.Time
 	deps     struct {
 		deps, rdeps *instance.Dependencies
@@ -53,6 +54,7 @@ func (is *InstanceState) load() error {
 		return errors.New("InstanceInitFunc returned nil")
 	}
 	is.loadInterfaces()
+	is.created = time.Now()
 	return nil
 }
 
