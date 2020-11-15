@@ -45,7 +45,9 @@ func (sm *ServiceManager) Stop() {
 			for _, rd := range *si.deps.rdeps {
 				sm.get(rd).instance.depending.UnsetDependency(si.id)
 			}
-			si.stop()
+			if si.running {
+				si.stop()
+			}
 			delete(ss.instances, si.id.Instance)
 		}
 	}
