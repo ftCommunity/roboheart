@@ -6,14 +6,17 @@ type Instance interface {
 	ID() ID
 }
 
+type DependencyInstance interface {
+	ID() ID
+}
+
 type ForceStoppableInstance interface {
 	ForceStop() //this should just stop threads and clean up fast
 }
 
 type DependingInstance interface {
-	Instance
 	Dependencies() Dependencies
-	SetDependency(Instance)
+	SetDependency(DependencyInstance)
 	UnsetDependency(ID)
 	OnServiceListChanged()
 	// functions below will only be called on instance creation and will not be called again
@@ -21,8 +24,11 @@ type DependingInstance interface {
 	SetDependenciesChangedHandler(func())
 }
 
+type DependentInstance interface {
+	GetDependentInstance(ID) DependencyInstance
+}
+
 type ManagingInstance interface {
-	Instance
 	SetServiceManager(ServiceManager)
 }
 

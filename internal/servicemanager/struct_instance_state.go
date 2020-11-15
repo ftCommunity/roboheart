@@ -15,6 +15,7 @@ type InstanceState struct {
 		base      instance.Instance
 		forcestop instance.ForceStoppableInstance
 		depending instance.DependingInstance
+		dependent instance.DependentInstance
 		managing  instance.ManagingInstance
 	}
 	running  bool
@@ -35,6 +36,9 @@ func (is *InstanceState) loadInterfaces() {
 	}
 	if di, ok := is.getBase().(instance.DependingInstance); ok {
 		is.instance.depending = di
+	}
+	if di, ok := is.getBase().(instance.DependentInstance); ok {
+		is.instance.dependent = di
 	}
 	if mi, ok := is.getBase().(instance.ManagingInstance); ok && is.ss.builtin {
 		is.instance.managing = mi
@@ -83,14 +87,18 @@ newdeps:
 			if is.sm.newInstance(nd, false) != nil {
 				continue newdeps
 			}
-			ni = is.sm.services[nd.Name].get(nd)
+			go is.sm.triggerWorker()
+			continue newdeps
 		}
 		if !ni.running {
 			continue newdeps
 		}
+		if ni.instance.dependent == nil {
+			continue newdeps
+		}
 		is.deps.deps.Add(nd)
 		ni.setRdep(is.id)
-		di.SetDependency(ni.instance.base)
+		di.SetDependency(ni.instance.dependent.GetDependentInstance(is.id))
 	}
 }
 
