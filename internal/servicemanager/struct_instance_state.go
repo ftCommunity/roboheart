@@ -100,7 +100,7 @@ newdeps:
 		}
 		is.deps.deps.Add(nd)
 		ni.setRdep(is.id)
-		di.SetDependency(ni.instance.dependent.GetDependentInstance(is.id))
+		go di.SetDependency(ni.instance.dependent.GetDependentInstance(is.id))
 	}
 }
 
