@@ -13,4 +13,7 @@ require (
 	github.com/spf13/afero v1.4.1
 	github.com/stretchr/testify v1.6.1
 	github.com/thoas/go-funk v0.7.0
+	golang.org/x/crypto v0.0.0-20201203163018-be400aefbc4c // indirect
+	golang.org/x/net v0.0.0-20201202161906-c7110b5ffcbb // indirect
+	golang.org/x/sys v0.0.0-20201204225414-ed752295db88 // indirect
 )
