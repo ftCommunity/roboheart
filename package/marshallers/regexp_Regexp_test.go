@@ -12,7 +12,7 @@ func TestRegexp_MarshalJSON(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		rs := &Regexp{Regexp: r}
+		rs := &Regexp{Regexp: *r}
 		j, err := rs.MarshalJSON()
 		if err != nil {
 			t.Error(err)

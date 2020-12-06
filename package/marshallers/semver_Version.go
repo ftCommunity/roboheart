@@ -5,15 +5,16 @@ import (
 )
 
 type Version struct {
-	*semver.Version
+	semver.Version
 }
 
-func (v *Version) MarshalJSON() ([]byte, error) {
+func (v Version) MarshalJSON() ([]byte, error) {
 	return MakeByteString(v.String()), nil
 }
 
 func (v *Version) UnmarshalJSON(data []byte) error {
 	var err error
-	v.Version, err = semver.New(extractString(data))
+	ver, err := semver.New(extractString(data))
+	v.Version = *ver
 	return err
 }

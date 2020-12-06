@@ -6,15 +6,16 @@ import (
 )
 
 type Regexp struct {
-	*regexp.Regexp
+	regexp.Regexp
 }
 
-func (r *Regexp) MarshalJSON() ([]byte, error) {
+func (r Regexp) MarshalJSON() ([]byte, error) {
 	return MakeByteString(strings.TrimSuffix(strings.TrimPrefix(r.String(), "^"), "$")), nil
 }
 
 func (r *Regexp) UnmarshalJSON(data []byte) error {
 	var err error
-	r.Regexp, err = regexp.Compile("^" + extractString(data) + "$")
+	reg, err := regexp.Compile("^" + extractString(data) + "$")
+	r.Regexp = *reg
 	return err
 }

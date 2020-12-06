@@ -2,7 +2,6 @@ package marshallers
 
 import (
 	"github.com/blang/semver"
-	"log"
 )
 
 type Range struct {
@@ -10,7 +9,6 @@ type Range struct {
 }
 
 func (r *Range) MarshalJSON() ([]byte, error) {
-	log.Println("Cannot marshall semver.Range")
 	return MakeByteString(""), nil
 }
 
