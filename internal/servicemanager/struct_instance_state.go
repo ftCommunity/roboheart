@@ -2,7 +2,7 @@ package servicemanager
 
 import (
 	"errors"
-	"github.com/ftCommunity-roboheart/roboheart/package/instance"
+	"github.com/servicemngr/core/package/instance"
 	"log"
 	"time"
 )

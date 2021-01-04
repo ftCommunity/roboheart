@@ -2,8 +2,8 @@ package servicemanager
 
 import (
 	"errors"
-	"github.com/ftCommunity-roboheart/roboheart/package/instance"
-	"github.com/ftCommunity-roboheart/roboheart/package/manifest"
+	"github.com/servicemngr/core/package/instance"
+	"github.com/servicemngr/core/package/manifest"
 )
 
 type ServiceState struct {

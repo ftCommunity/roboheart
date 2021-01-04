@@ -1,19 +1,19 @@
-package main
+package servicemngr
 
 import (
 	"fmt"
 	"github.com/akamensky/argparse"
+	"github.com/servicemngr/core/internal/servicemanager"
+	"github.com/servicemngr/core/package/manifest"
 	"io/ioutil"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
-
-	"github.com/ftCommunity-roboheart/roboheart/internal/servicemanager"
 )
 
-func main() {
-	parser := argparse.NewParser("roboheart", "roboheart")
+func Run(name string, desc string, svcs [][]manifest.ServiceManifest) {
+	parser := argparse.NewParser(name, desc)
 	configpath := parser.String("c", "config", &argparse.Options{
 		Required: false,
 		Help:     "path to configuration file",
@@ -26,7 +26,7 @@ func main() {
 	if err != nil {
 		fmt.Print(parser.Usage(err))
 	}
-	log.Println("Starting roboheart")
+	log.Println("Starting", name)
 	var config []byte
 	if *configpath != "" {
 		var err error
@@ -36,7 +36,7 @@ func main() {
 		}
 	}
 	//create ServiceManager
-	sm, err := servicemanager.NewServiceManager(config, *pluginpaths)
+	sm, err := servicemanager.NewServiceManager(config, *pluginpaths, svcs)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -49,7 +49,7 @@ func main() {
 	//wait for ctrl-c
 	<-c
 	//initiate stop procedure
-	log.Println("Stopping roboheart")
+	log.Println("Stopping", name)
 	sm.Stop()
 	log.Println("Heart rate zero")
 	log.Println("Dead")

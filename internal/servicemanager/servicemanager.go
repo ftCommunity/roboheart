@@ -2,14 +2,13 @@ package servicemanager
 
 import (
 	"errors"
-	"github.com/ftCommunity-roboheart/roboheart/internal/services"
-	"github.com/ftCommunity-roboheart/roboheart/package/manifest"
+	"github.com/servicemngr/core/package/manifest"
 	"github.com/thoas/go-funk"
 	"log"
 	"plugin"
 	"sync"
 
-	"github.com/ftCommunity-roboheart/roboheart/package/instance"
+	"github.com/servicemngr/core/package/instance"
 )
 
 type ServiceManager struct {
@@ -200,7 +199,7 @@ func (sm *ServiceManager) loadService(m manifest.ServiceManifest, builtin bool) 
 	})
 }
 
-func NewServiceManager(config []byte, pluginpaths []string) (*ServiceManager, error) {
+func NewServiceManager(config []byte, pluginpaths []string, svcs [][]manifest.ServiceManifest) (*ServiceManager, error) {
 	//create ServiceManager amd initialize it
 	sm := new(ServiceManager)
 	sm.services = make(map[string]*ServiceState)
@@ -213,7 +212,7 @@ func NewServiceManager(config []byte, pluginpaths []string) (*ServiceManager, er
 	//add services
 	for _, m := range func() []manifest.ServiceManifest {
 		var ml []manifest.ServiceManifest
-		for _, sp := range services.ServiceProviders {
+		for _, sp := range svcs {
 			ml = append(ml, sp...)
 		}
 		return ml

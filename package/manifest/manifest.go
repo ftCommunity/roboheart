@@ -2,7 +2,7 @@ package manifest
 
 import (
 	"encoding/json"
-	"github.com/ftCommunity-roboheart/roboheart/package/instance"
+	"github.com/servicemngr/core/package/instance"
 )
 
 type (
